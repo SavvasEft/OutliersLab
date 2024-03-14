@@ -60,13 +60,12 @@ def get_iqr_anomaly_plots(data, bins = 50):
     axs[0].plot(data)
     axs[0].scatter(outliers_index, outliers, color ='red')
 
-    #sns.boxplot draws whiskers to the farthest datapoint within upper & lower limits 
+    #sns.boxplot draws whiskers to the farthest datapoint within upper & lower limits
+    #thus lower & upper limits drawn may not agree with the whiskers in boxplots.
+
     sns.boxplot(data=data, orient = 'h', ax=axs[1])
-    # axs[1].plot([upper_limit,upper_limit],[-0.5,0.5], 'r--')
-    # axs[1].plot([lower_limit,lower_limit],[-0.5,0.5], 'r--')
 
     axs[2].hist(data, bins=bins)
     axs[2].plot([lower_limit,lower_limit],[0,np.max(np.histogram(data, bins=50)[0])], 'r--')
     axs[2].plot([upper_limit,upper_limit],[0,np.max(np.histogram(data, bins=50)[0])], 'r--')
-
     return fig
