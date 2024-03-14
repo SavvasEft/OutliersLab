@@ -54,4 +54,3 @@ def test_reader_raises_error_for_non_csv_or_xlsx_files():
         data_reader_object.get_user_data_df()
     assert str(exc_info.value) == 'Error occurred while reading file: File type is not supported. Please use .csv or .xlsx files.'
 
-
