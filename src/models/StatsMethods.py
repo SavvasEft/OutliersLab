@@ -2,26 +2,37 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+import scipy.stats as stats
 
 
 
-def get_z_score_outliers_1d(data, z_threshold=2):
+def get_z_score_outliers_1d(data, z_threshold=2, modified=False):
     "data: np.array"
     #for 1d data
-    mean = np.mean(data)
-    std =  np.std(data)
-    z_score = (data - mean) / std
+    
+    
+    
+    if modified:
+        median=np.median(data)
+        MAD = stats.median_abs_deviation(data, scale=1)
+        z_score = stats.norm.ppf(.75)*(data-median) / MAD
+        
+    else:
+        mean = np.mean(data)
+        std =  np.std(data)
+        z_score = (data - mean) / std
+    
     anomalies_bool = np.abs(z_score) > z_threshold
     return anomalies_bool
 
-def get_z_score_iter_outliers_1d(data,z_threshold=2):
+def get_z_score_iter_outliers_1d(data,z_threshold=2, modified=False):
     outlier_indexes = []
     iter_data = np.array(data, copy=True)
     iter_index = np.arange(len(data))
     len_outlier_indexes = 5
     iter = 0
     while iter<10 and len_outlier_indexes>0:
-        iter_outliers_bool = get_z_score_outliers_1d(iter_data, z_threshold=z_threshold)
+        iter_outliers_bool = get_z_score_outliers_1d(iter_data, z_threshold=z_threshold,  modified=modified)
         iter_outlier_index = iter_index[iter_outliers_bool]
         len_outlier_indexes = len(iter_outlier_index)
         outlier_indexes.append(iter_outlier_index)
@@ -34,25 +45,33 @@ def get_z_score_iter_outliers_1d(data,z_threshold=2):
     outlier_bool[outlier_indexes]=True
     return outlier_bool
 
-def get_z_score_iter_outlier_plots(data, z_threshold=2, bins = 50, line_plot=False):
+def get_z_score_iter_outlier_plots(data, z_threshold=2, bins = 50, line_plot=False, modified=False):
     "data: np.array"
     #bins = int(len(data)/4)
     fig, ax = plt.subplots(2,1)       
     index = np.arange(len(data))
-    outlier_bool = get_z_score_iter_outliers_1d(data, z_threshold=z_threshold)
+    outlier_bool = get_z_score_iter_outliers_1d(data, z_threshold=z_threshold, modified=modified)
     outlier_indexes = index[outlier_bool]
     outliers = data[outlier_bool]
     clean_data = data[np.invert(outlier_bool)] 
-    mean = clean_data.mean()
-    x_std = np.std(clean_data)
 
+    
+    if not modified:
+        x_std = np.std(clean_data)
+        mean = clean_data.mean()
+
+        
+    else:
+        from statsmodels import robust
+        x_std = stats.median_abs_deviation(clean_data, scale=1)
+        mean = np.median(clean_data)
+        z_threshold=z_threshold/stats.norm.ppf(.75)
+        
     if line_plot:
         ax[0].plot(data)
     else:
         ax[0].scatter(x=index, y=data)
     ax[0].scatter(outlier_indexes,y=outliers, color = 'red')
-    # ax1.axhline(mean+min_outlier_distance, color = 'red', lw=0.8, ls='--')
-    # ax1.axhline(mean-min_outlier_distance, color = 'red', lw=0.8, ls='--')
     ax[0].axhline(mean+z_threshold*x_std, color = 'red', lw=0.8, ls='--')
     ax[0].axhline(mean-z_threshold*x_std, color = 'red', lw=0.8, ls='--')
     ax[0].axhline(mean, color = 'green', lw=0.8, ls='-')
@@ -67,7 +86,11 @@ def get_z_score_iter_outlier_plots(data, z_threshold=2, bins = 50, line_plot=Fal
     ax[1].set_xlabel('Point Values')
     
     plt.subplots_adjust(hspace=0.5)
-    fig.suptitle('Results from z-score method (iterative)', fontsize=14)   
+    if not modified:
+        fig.suptitle('Results from z-score method (iterative)', fontsize=14)   
+    else:
+        fig.suptitle('Results from modified z-score method (iterative)', fontsize=14)   
+
     return fig
 
 def get_iqr_limits(data):
