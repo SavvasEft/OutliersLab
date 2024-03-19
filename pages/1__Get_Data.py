@@ -13,57 +13,8 @@ sys.path.insert(0, parent_directory) # defined root folder 1 step up
 from src.data_processing.DataReader import DataReader
 from src.data_processing.DataGenerator import get_1d_distr_with_outliers, \
                                               get_2d_distr_with_outliers
-
-##Helper functions for plots:
-def get_initial_1d_graphs(np_data):
-    "data: np.array"
-    fig, [ax1, ax2] = plt.subplots(2,1)
-    ax2.hist(np_data, int(len(np_data)/4))
-    ax1.plot(np_data)
-    return fig
-
-
-def scatter_hist_for_2d_data(x, y, ax, ax_histx, ax_histy, x_label, y_label):
-    # no labels
-    ax_histx.tick_params(axis="x", labelbottom=False)
-    ax_histy.tick_params(axis="y", labelleft=False)
-
-    # the scatter plot:
-    ax.scatter(x, y)
-    
-    if x_label is not None:
-        ax.set_xlabel(x_label)
-    if y_label is not None:
-        ax.set_ylabel(y_label)
-    
-
-    # now determine nice limits by hand:
-    binwidth = 0.25
-    xymax = max(np.max(np.abs(x)), np.max(np.abs(y)))
-    lim = (int(xymax/binwidth) + 1) * binwidth
-
-    bins = np.arange(-lim, lim + binwidth, binwidth)
-    ax_histx.hist(x, bins=bins)
-    ax_histy.hist(y, bins=bins, orientation='horizontal')
-    
-
-def get_initial_2d_distrib_plots(x, y, x_label, y_label):
-    # Start with a square Figure.
-    fig = plt.figure(figsize=(6, 6))
-    # Add a gridspec with two rows and two columns and a ratio of 1 to 4 between
-    # the size of the marginal axes and the main axes in both directions.
-    # Also adjust the subplot parameters for a square plot.
-    gs = fig.add_gridspec(2, 2,  width_ratios=(4, 1), height_ratios=(1, 4),
-                        left=0.1, right=0.9, bottom=0.1, top=0.9,
-                        wspace=0.05, hspace=0.05)
-    # Create the Axes.
-    ax = fig.add_subplot(gs[1, 0])
-    ax_histx = fig.add_subplot(gs[0, 0], sharex=ax)
-    ax_histy = fig.add_subplot(gs[1, 1], sharey=ax)
-    # Draw the scatter plot and marginals.
-    return scatter_hist_for_2d_data(x, y, ax, ax_histx, ax_histy, x_label, y_label)
-
-### End of helper functions
+from src.utils.toolbox import get_initial_1d_graphs, \
+                              get_2d_distrib_plots
 
 
 np_data = None
@@ -117,7 +68,7 @@ if np_data is not None:
         if data_dimensions == 1:
             fig = get_initial_1d_graphs(np_data)
         elif data_dimensions ==2:
-            fig = get_initial_2d_distrib_plots(x=np_data[0], y=np_data[1], x_label='0 axes' , y_label='1 axes')
+            fig = get_2d_distrib_plots(x=np_data[0], y=np_data[1], x_label='0 axes' , y_label='1 axes')
         
         st.pyplot(fig)
     
