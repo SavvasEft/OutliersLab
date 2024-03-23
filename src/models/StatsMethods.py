@@ -4,63 +4,81 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import scipy.stats as stats
 
+import os
+import sys
+current_directory =  os.path.abspath(os.path.dirname(__file__))
+parent_directory = os.path.dirname(current_directory)
+sys.path.insert(0, parent_directory) # defined root folder 1 step up
 
+from utils.config import ITERATION_MAX_NUM_ZSCORE #, \
+                         #METHODS_DESCRIPTIONS
 
-def get_z_score_outliers_1d(data, z_threshold=2, modified=False):
+from utils.toolbox import describe_function
+
+def get_z_score_outliers_1d_mask(data, z_threshold=2, modified=False):
     "data: np.array"
-    #for 1d data
-    
-    
-    
-    if modified:
-        median=np.median(data)
-        MAD = stats.median_abs_deviation(data, scale=1)
-        z_score = stats.norm.ppf(.75)*(data-median) / MAD
-        
-    else:
-        mean = np.mean(data)
-        std =  np.std(data)
-        z_score = (data - mean) / std
-    
-    anomalies_bool = np.abs(z_score) > z_threshold
-    return anomalies_bool
 
-def get_z_score_iter_outliers_1d(data,z_threshold=2, modified=False):
+    if data.ndim == 1:
+        columns = 1
+    elif data.ndim==2:
+        _,columns = data.shape
+
+    try:
+        if columns == 1:
+            if modified:
+                median=np.median(data)
+                MAD = stats.median_abs_deviation(data, scale=1)
+                z_score = stats.norm.ppf(.75)*(data-median) / MAD
+                
+            else:
+                mean = np.mean(data)
+                std =  np.std(data)
+                z_score = (data - mean) / std
+        
+            anomalies_bool = np.abs(z_score) > z_threshold
+            anomalies_bool = np.squeeze(anomalies_bool)
+            return anomalies_bool
+        
+        else:
+            error_msg = "Data dimensions error. Z-score calculation for 1d can take arrays of shape (R,1) or (R,) s"
+            print (error_msg)
+            raise ValueError(error_msg)
+
+    except Exception as e:
+        print('Error when calculating outliers using 1d z-score.')
+        raise e
+    
+
+@describe_function("z-score")
+# function description should agree with METHODS_DESCRIPTIONS in config.py
+def get_z_score_iter_outliers_1d_mask(data,z_threshold=2, modified=False):
     outlier_indexes = []
     iter_data = np.array(data, copy=True)
-    iter_index = np.arange(len(data))
-    len_outlier_indexes = 5
+    iter_index = np.arange(len(data)).reshape(len(data),1)
+    len_outlier_indexes = 5 #anything > 0 to start the loop
     iter = 0
-    while iter<10 and len_outlier_indexes>0:
-        iter_outliers_bool = get_z_score_outliers_1d(iter_data, z_threshold=z_threshold,  modified=modified)
-        iter_outlier_index = iter_index[iter_outliers_bool]
-        len_outlier_indexes = len(iter_outlier_index)
-        outlier_indexes.append(iter_outlier_index)
-        iter_data = iter_data[np.invert(iter_outliers_bool)]
-        iter_index = iter_index[np.invert(iter_outliers_bool)]
+    outliers_bool = get_z_score_outliers_1d_mask(iter_data, z_threshold=z_threshold,  modified=modified)
+    found_outliers = sum(outliers_bool)>0
+    while iter<ITERATION_MAX_NUM_ZSCORE and found_outliers:
+        iter_outliers_bool = get_z_score_outliers_1d_mask(iter_data, z_threshold=z_threshold,  modified=modified)
+        outliers_bool[iter_outliers_bool]=True
+        found_outliers = sum(iter_outliers_bool)>0
         iter +=1
-
-    outlier_indexes = np.concatenate(outlier_indexes)       
-    outlier_bool = np.array([False]*len(data))
-    outlier_bool[outlier_indexes]=True
-    return outlier_bool
+    return outliers_bool
 
 def get_z_score_iter_outlier_plots(data, z_threshold=2, bins = 50, line_plot=False, modified=False):
     "data: np.array"
     #bins = int(len(data)/4)
     fig, ax = plt.subplots(2,1)       
-    index = np.arange(len(data))
-    outlier_bool = get_z_score_iter_outliers_1d(data, z_threshold=z_threshold, modified=modified)
+    index = np.arange(len(data)).reshape(len(data),1)
+    outlier_bool = get_z_score_iter_outliers_1d_mask(data, z_threshold=z_threshold, modified=modified)
     outlier_indexes = index[outlier_bool]
     outliers = data[outlier_bool]
     clean_data = data[np.invert(outlier_bool)] 
 
-    
     if not modified:
         x_std = np.std(clean_data)
         mean = clean_data.mean()
-
-        
     else:
         from statsmodels import robust
         x_std = stats.median_abs_deviation(clean_data, scale=1)
@@ -101,15 +119,36 @@ def get_iqr_limits(data):
     upper_limit = third_quar + 1.5 * iqr 
     return lower_limit, upper_limit
 
-def get_iqr_outliers_1d(data):
-    lower_limit, upper_limit = get_iqr_limits(data)
-    outlier_bool = (data < lower_limit) | (data > upper_limit)
-    return outlier_bool
+@describe_function("IQR")
+# function description should agree with METHODS_DESCRIPTIONS in config.py
+def get_iqr_outliers_1d_mask(data):
+    if data.ndim == 1:
+        columns = 1
+    elif data.ndim==2:
+        _,columns = data.shape
+    
+    try:
+        if columns==1:
+            lower_limit, upper_limit = get_iqr_limits(data)
+            outlier_bool = (data < lower_limit) | (data > upper_limit)
+            outlier_bool = np.squeeze(outlier_bool)
+            return outlier_bool
+        
+        else:
+            error_msg = "Data dimensions error. IQR-score calculation for 1d can take arrays of shape (R,1) or (R,) s"
+            print (error_msg)
+            raise ValueError(error_msg)
+
+    except Exception as e:
+        print('Error when calculating outliers using 1d IQR method.')
+        raise e
+    
+    
 
 def get_iqr_anomaly_plots(data, bins = 50, line_plot=False):
     lower_limit, upper_limit = get_iqr_limits(data)
-    index = np.arange(len(data))
-    outliers_bool = get_iqr_outliers_1d(data)
+    index = np.arange(len(data)).reshape(len(data),1)
+    outliers_bool = get_iqr_outliers_1d_mask(data)
     outliers_index = index[outliers_bool]
     outliers = data[outliers_index]
     fig, axs = plt.subplots(3,1)

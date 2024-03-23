@@ -16,10 +16,10 @@ sys.path.insert(0, parent_directory) # defined root folder 1 step up
 
 from src.models.StatsMethods import get_z_score_iter_outlier_plots, \
                                     get_iqr_anomaly_plots, \
-                                    get_z_score_iter_outliers_1d, \
-                                    get_iqr_outliers_1d
+                                    get_z_score_iter_outliers_1d_mask, \
+                                    get_iqr_outliers_1d_mask
 
-from src.models.MLMethods import get_isolation_forest_outliers
+from src.models.MLMethods import get_isolation_forest_outliers_mask
                                     
 from src.utils.toolbox import get_initial_1d_graphs, \
                               get_2d_distrib_plots, \
@@ -49,7 +49,7 @@ if data_dimensions == 2:
 
 if show_z_stats:
     if show_line_plot is None:
-        show_line_plot = st.sidebar.toggle('Show line plot')        
+        show_line_plot = st.sidebar.toggle('Show line plot', value=True)        
 
     median_instead_of_mean = st.sidebar.toggle('Choose median for z-stats')
 
@@ -82,7 +82,7 @@ if show_z_stats:
     
 if show_iqr_stats:
     if show_line_plot is None:
-        show_line_plot = st.sidebar.toggle('Show line plot')        
+        show_line_plot = st.sidebar.toggle('Show line plot', value=True)        
 
     if data_dimensions == 1:
         fig = get_iqr_anomaly_plots(data = np_data, line_plot=show_line_plot)
@@ -96,6 +96,7 @@ if show_iqr_stats:
             fig02 = get_iqr_anomaly_plots(data = np_data[:,1], line_plot=show_line_plot)
             st.pyplot(fig02)
     print ('Found outliers using IQR method.')
+    
 
      
                 
@@ -103,17 +104,17 @@ if show_iqr_stats:
         
 if show_isolation_forest:
     if show_line_plot is None:
-        show_line_plot = st.sidebar.toggle('Show line plot')        
+        show_line_plot = st.sidebar.toggle('Show line plot', value=True)        
 
     if data_dimensions == 1:
         data = np_data #.reshape(len(np_data), 1)
-        outlier_bool_isolation_forest = get_isolation_forest_outliers(data = np_data)
+        outlier_bool_isolation_forest = get_isolation_forest_outliers_mask(data = np_data)
         fig_forest_isol = draw_line_or_point_plot_1d(data = np_data, outlier_bool = outlier_bool_isolation_forest, line_plot = show_line_plot)
         st.pyplot(fig_forest_isol)
 
     elif data_dimensions == 2:
         #data = np_data.reshape((np_data.shape[1], np_data.shape[0]))
-        outlier_bool_isolation_forest = get_isolation_forest_outliers(data = np_data)
+        outlier_bool_isolation_forest = get_isolation_forest_outliers_mask(data = np_data)
         fig_forest_isol = draw_scatter_plot_2d(data = np_data, outlier_bool = outlier_bool_isolation_forest)
 
         with col2:
@@ -132,12 +133,12 @@ if data_dimensions == 2:
 
             if add_ax0_zscore:
                 data_ax = np_data[:,0]
-                outlier_bool_ax0_zscore = get_z_score_iter_outliers_1d(data=data_ax,z_threshold=z_threshold_ax0, modified=median_instead_of_mean)                   
+                outlier_bool_ax0_zscore = get_z_score_iter_outliers_1d_mask(data=data_ax,z_threshold=z_threshold_ax0, modified=median_instead_of_mean)                   
                 outlier_bool_to_combine.append(outlier_bool_ax0_zscore)
 
             if add_ax1_zscore:
                 data_ax = np_data[:,1]
-                outlier_bool_ax1_zscore = get_z_score_iter_outliers_1d(data=data_ax,z_threshold=z_threshold_ax1, modified=median_instead_of_mean)                   
+                outlier_bool_ax1_zscore = get_z_score_iter_outliers_1d_mask(data=data_ax,z_threshold=z_threshold_ax1, modified=median_instead_of_mean)                   
                 outlier_bool_to_combine.append(outlier_bool_ax1_zscore)
 
         if show_iqr_stats:
@@ -147,11 +148,11 @@ if data_dimensions == 2:
 
             if add_ax0_iqr:
                 data_ax = np_data[:,0]
-                outlier_bool_ax0_iqr = get_iqr_outliers_1d(data=data_ax)                   
+                outlier_bool_ax0_iqr = get_iqr_outliers_1d_mask(data=data_ax)                   
                 outlier_bool_to_combine.append(outlier_bool_ax0_iqr)
             if add_ax1_iqr:
                 data_ax = np_data[:,1]
-                outlier_bool_ax1_iqr = get_iqr_outliers_1d(data=data_ax)                   
+                outlier_bool_ax1_iqr = get_iqr_outliers_1d_mask(data=data_ax)                   
                 outlier_bool_to_combine.append(outlier_bool_ax1_iqr)
                 
                 
