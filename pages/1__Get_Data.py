@@ -89,6 +89,4 @@ if np_data is not None:
     if 'data_dimensions' not in st.session_state:
         st.session_state['data_dimensions'] = data_dimensions
     st.session_state['data_dimensions'] = data_dimensions
-    
-    st.write(np_data.shape)
 

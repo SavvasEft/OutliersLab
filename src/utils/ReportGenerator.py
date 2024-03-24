@@ -19,7 +19,7 @@ from utils.config import METHODS_DESCRIPTIONS, \
 
 def export_df_to_excel_file(df, fname):
     if fname is None:
-        fname = 'output_file'
+        fname = 'output_xlsx_file'
     wb = Workbook()
     ws = wb.active
     ws.sheet_state = 'visible'
@@ -28,17 +28,37 @@ def export_df_to_excel_file(df, fname):
         df.to_excel(writer, index=False)
     return None
 
-def export_dfs_to_excel_sheets(df_list,sheet_name_list, fname):
+def export_df_to_csv_file(df,fname,header=False):
+    if fname is None:
+        fname = 'output_csv_file'
+    filename_path = os.path.join(OUTPUT_FOLDER_PATH, f"{fname}.csv")
+    df.to_csv(filename_path, header=header, index=False)
+    
+    
+def export_dfs_to_excel_sheets(df_list,sheet_name_list, fname, \
+                               header_bool_list=None):
     if fname is None:
         fname = 'output_file_multiple_sheets'
+
+    if header_bool_list is None:
+        header = True
+    
     wb = Workbook()
     ws = wb.active
     ws.sheet_state = 'visible'
     filename_path = os.path.join(OUTPUT_FOLDER_PATH, f"{fname}.xlsx")
     with pd.ExcelWriter(filename_path, engine="openpyxl") as writer:
-        for i in range (len(df_list)): 
-            df_list[i].to_excel(writer, sheet_name=sheet_name_list[i], index=False)
+        if header_bool_list is not None:
+            for df_file, sheet_name, header in zip(df_list, sheet_name_list, header_bool_list):                
+                df_file.to_excel(writer, sheet_name=sheet_name, \
+                    index=False, header=header)
+        else:
+            for i in range (len(df_list)): 
+                df_list[i].to_excel(writer, sheet_name=sheet_name_list[i], \
+                    index=False, header=header)
     return None
+
+
 
 # def export_dfs_to_excel_sheets():
 

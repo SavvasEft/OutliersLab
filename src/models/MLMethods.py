@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.ensemble import IsolationForest
+from sklearn.neighbors import LocalOutlierFactor
 
 import os
 import sys
@@ -38,5 +39,10 @@ def get_isolation_forest_outliers_mask(data, contamination=CONTAMINATION, \
         print(error_msg)
         raise e
 
-
+@describe_function("Local Outlier Factor")
+def get_lof_outlier_mask(data, n_neighbors=35, contamination=CONTAMINATION):
+    clf = LocalOutlierFactor(n_neighbors=n_neighbors, contamination=CONTAMINATION)
+    predictions = clf.fit_predict(data)
+    anomalies_bool = predictions<0
+    return anomalies_bool
 

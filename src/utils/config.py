@@ -14,9 +14,13 @@ CONTAMINATION = 0.1
 
 # Used for reminder, for raising exception and reminding to modify
 # method description in all places that it is used
-METHODS_DESCRIPTIONS = ['z-score','IQR','Isol. Forest']
+METHODS_DESCRIPTIONS = ['z-score', \
+                        'IQR', \
+                        'Isol. Forest', \
+                        'Local Outlier Factor']
 
 SUMMARY_OUTPUT_XLSX_FNAME = 'outlier_report'
 
-if __name__ == '__main__':
-    print (SUMMARY_OUTPUT_XLSX_FNAME)
+#file name for csv output:
+CLEAN_DATA_FILENAME = 'clean_data'
+

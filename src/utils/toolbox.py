@@ -91,12 +91,6 @@ def draw_line_or_point_plot_1d(data, outlier_bool, line_plot=False):
     return fig
 
 
-
-
-
-
-
-
 def get_all_methods_outlier_array(data, methods_list):
     methods_outlier_masks_list = []
     for method in methods_list: 
