@@ -14,7 +14,7 @@ A tool focused on outlier detection, based on various Statistical and Machine Le
 - Prepare outlier report.
 - Visualize data & outliers.
 
-*Note: For data with dimensions more than 2d, visualizations are representative of the data up to a point, some information is unavoidably lost.* 
+*Note: For data with dimensions more than 2d, visualizations are shown on 2d based on dimensionality reduction methods. This is representative of the data,but some information is unavoidably lost.* 
 
 
 ### Methods Available:
@@ -43,7 +43,7 @@ A tool focused on outlier detection, based on various Statistical and Machine Le
 
 Data can also include indices and/or column names. If they do, then when uploaded, user should choose accordingly from the options that appear, like the following figure. For data structures like a, c or e, user should choose options b, d or f accordingly. ***Data to be analyzed*** depend on the choices from the user.
 
-![Image error. The image showed self explanatory buttons with options: 'First Row has column names (attributes).' and 'First Column has indices (instance labels).' and examples of data in each case.'](data\readme_data\feature_label_index_options.png "Options if indices or column names are included.")
+![Image error. The image showed self explanatory buttons with options: 'First Row has column names (attributes).' and 'First Column has indices (instance labels).' and examples of data in each case.'](\data\readme_data\feature_label_index_options.png "Options if indices or column names are included.")
 
 
 
@@ -75,26 +75,23 @@ User choose to save three files:
 
 ### Installation
 
-    - Requirements: 
-      Python, Pip
-    
     To download and use, follow these steps:
 
         - Get repository:
             Option 1: Git clone
             2. Clone the repo
                 ```sh
-                git clone https://github.com/your_username_/Project-Name.git
+                git clone https://github.com/SavvasEft/outliers_lab.git
                 ```
             Option 2: Download repository
 
         - Install Locally:     
-            Pip install requirements
+            pip install requirements
 
         - Run the tool:
-            To run the tool interface:
-                1) Go to folder: mpla from command line tool
-                2) Type: streamlit run outliers_lab_dashboard.py 
+            To run outliers lab:
+                1) Go to downloaded folder
+                2) Type: streamlit run dashboard.py 
         
 [![License: MIT](https://assets-global.website-files.com/5e0f1144930a8bc8aace526c/65dd9eb5aaca434fac4f1c34_License-MIT-blue.svg)](/LICENSE)
 
