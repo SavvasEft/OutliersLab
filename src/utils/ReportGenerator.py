@@ -13,9 +13,6 @@ sys.path.insert(0, parent_directory) # defined root folder 1 step up
 from utils.config import METHODS_DESCRIPTIONS, \
                          OUTPUT_FOLDER_PATH
 
-                         
-
-
 
 def export_df_to_excel_file(df, fname):
     if fname is None:
@@ -92,8 +89,10 @@ def prepare_outlier_report_df(outlier_report_array, methods_list):
     outlier_report_df = pd.DataFrame(outlier_report_array, columns=columns)
     return outlier_report_df
 
-if __name__ == '__main__':
-    print(1)
-    export_dfs_to_excel_sheets
-    print(2)
-
+def export_plt_fig(fig, fname=None):
+    import matplotlib.pyplot as plt
+    if fname is None:
+        fname = 'fig1'
+    filename_path = os.path.join(OUTPUT_FOLDER_PATH, f"{fname}.png")
+    fig.savefig(filename_path)
+    return None

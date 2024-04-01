@@ -1,5 +1,5 @@
 import streamlit as st
 
-st.write('Welcome to Anomaly detection tool')
+st.header('Welcome to Outliers lab')
 
-st.write('Upload your data to be analysed by choosing "Upload Data" in the top left menu.')
+st.write('Upload your data (or choose demo data) by choosing "Get Data" in the menu on the left.')

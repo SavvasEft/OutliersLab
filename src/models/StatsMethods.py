@@ -35,9 +35,9 @@ def get_z_score_outliers_1d_mask(data, z_threshold=2, modified=False):
                 std =  np.std(data)
                 z_score = (data - mean) / std
         
-            anomalies_bool = np.abs(z_score) > z_threshold
-            anomalies_bool = np.squeeze(anomalies_bool)
-            return anomalies_bool
+            anomalies_mask = np.abs(z_score) > z_threshold
+            anomalies_mask = np.squeeze(anomalies_mask)
+            return anomalies_mask
         
         else:
             error_msg = "Data dimensions error. Z-score calculation for 1d can take arrays of shape (R,1) or (R,) s"
@@ -66,15 +66,13 @@ def get_z_score_iter_outliers_1d_mask(data,z_threshold=2, modified=False):
         iter +=1
     return outliers_bool
 
-def get_z_score_iter_outlier_plots(data, z_threshold=2, bins = 50, line_plot=False, modified=False):
+def get_z_score_iter_outlier_plots(data, outlier_mask, z_threshold=2, bins = 50, line_plot=False, modified=False):
     "data: np.array"
-    #bins = int(len(data)/4)
     fig, ax = plt.subplots(2,1)       
     index = np.arange(len(data)).reshape(len(data),1)
-    outlier_bool = get_z_score_iter_outliers_1d_mask(data, z_threshold=z_threshold, modified=modified)
-    outlier_indexes = index[outlier_bool]
-    outliers = data[outlier_bool]
-    clean_data = data[np.invert(outlier_bool)] 
+    outlier_indexes = index[outlier_mask]
+    outliers = data[outlier_mask]
+    clean_data = data[np.invert(outlier_mask)] 
 
     if not modified:
         x_std = np.std(clean_data)
@@ -130,9 +128,9 @@ def get_iqr_outliers_1d_mask(data):
     try:
         if columns==1:
             lower_limit, upper_limit = get_iqr_limits(data)
-            outlier_bool = (data < lower_limit) | (data > upper_limit)
-            outlier_bool = np.squeeze(outlier_bool)
-            return outlier_bool
+            outlier_mask = (data < lower_limit) | (data > upper_limit)
+            outlier_mask = np.squeeze(outlier_mask)
+            return outlier_mask
         
         else:
             error_msg = "Data dimensions error. IQR-score calculation for 1d can take arrays of shape (R,1) or (R,) s"
@@ -145,11 +143,12 @@ def get_iqr_outliers_1d_mask(data):
     
     
 
-def get_iqr_anomaly_plots(data, bins = 50, line_plot=False):
+def get_iqr_anomaly_plots(data, outliers_mask, bins = 50, line_plot=False):
     lower_limit, upper_limit = get_iqr_limits(data)
     index = np.arange(len(data)).reshape(len(data),1)
-    outliers_bool = get_iqr_outliers_1d_mask(data)
-    outliers_index = index[outliers_bool]
+    if outliers_mask is None:
+        outliers_mask = get_iqr_outliers_1d_mask(data)
+    outliers_index = index[outliers_mask]
     outliers = data[outliers_index]
     fig, axs = plt.subplots(3,1)
     if line_plot:

@@ -1,15 +1,4 @@
-import os
 import pandas as pd
-
-import matplotlib.pyplot as plt
-
-from src.data_processing import DataReader
-
-class UnsupportedFileTypeError(Exception):
-    """Exception raised when an unsupported file type is provided."""
-    pass
-
-
 class DataReader:
     
     def __init__(self, datafile):
