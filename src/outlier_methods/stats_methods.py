@@ -20,11 +20,11 @@ from outlier_methods.outlier_detector_base import DetectorBase
 #from utils.config import ITERATION_MAX_NUM_ZSCORE #, \
 #                         #METHODS_DESCRIPTIONS
 
-ITERATION_MAX_NUM_ZSCORE=5
+ITERATION_MAX_NUM_ZSCORE=2
 
 class ZScoreMethod:
     
-    def __init__(self, z_threshold, modified=False):
+    def __init__(self, z_threshold=3, modified=False):
         self.z_threshold = z_threshold
         self.modified = modified
         self.name = 'z-score'
@@ -63,25 +63,41 @@ class ZScoreMethod:
 
 
     def get_outlier_mask_after_multiple_iterations(self, data):
+
         iter_data = np.array(data, copy=True)
+        outlier_indexes = []
+        iter_index = np.arange(len(iter_data)).reshape(len(iter_data),1)
+
         iter = 0
-        outliers_bool = self.get_1d_mask(data = iter_data)
-        iteration_found_outliers = sum(outliers_bool)>0
+        iter_outliers_mask = self.get_1d_mask(data = iter_data)
+        iteration_found_outliers = sum(iter_outliers_mask)>0
+        outlier_indexes += iter_index[iter_outliers_mask].tolist()
+        iter_index = iter_index[np.invert(iter_outliers_mask)]
+        iter_data = iter_data[np.invert(iter_outliers_mask)]
+        iter +=1
         while iter<ITERATION_MAX_NUM_ZSCORE and iteration_found_outliers:
-            iter_outliers_bool = self.get_1d_mask(data = iter_data)
-            outliers_bool[iter_outliers_bool]=True
-            iteration_found_outliers = sum(iter_outliers_bool)>0
+            iter_outliers_mask = self.get_1d_mask(data = iter_data)
+            iteration_found_outliers = sum(iter_outliers_mask)>0
+            outlier_indexes += iter_index[iter_outliers_mask].tolist()
+            iter_index = iter_index[np.invert(iter_outliers_mask)]
+            iter_data = iter_data[np.invert(iter_outliers_mask)]
             iter +=1
-        return outliers_bool
+            
+        else:
+            if iter == ITERATION_MAX_NUM_ZSCORE:
+                print ('Reached maximum number of iterations for z-score method without converging')
+
+        outliers_mask = np.array([False]*len(data))
+        
+        outliers_mask[outlier_indexes]=True
+        return outliers_mask
     
     #@lru_cache(maxsize=128)
-    def get_outlier_mask(self, data, z_threshold = None):
-        if z_threshold is None:
-            z_threshold = self.z_threshold
+    def get_outlier_mask(self, data):
         return self.get_outlier_mask_after_multiple_iterations(data=data)
         
     
-    def get_z_score_iter_outlier_plots(self, data, z_threshold=2, bins = 50, line_plot=False):
+    def get_z_score_iter_outlier_plots(self, data, bins = 50, line_plot=False):
         "data: np.array"
         fig, ax = plt.subplots(2,1)       
         index = np.arange(len(data)).reshape(len(data),1)
@@ -91,32 +107,30 @@ class ZScoreMethod:
         outliers = data[outlier_mask]
         clean_data = data[np.invert(outlier_mask)] 
 
-        if not self.modified:
-            x_std = np.std(clean_data)
-            mean = clean_data.mean()
-            print (mean)
-            print (f'{x_std=}') 
-            print (clean_data.max())
-        else:
+        if self.modified:
             from statsmodels import robust
             x_std = stats.median_abs_deviation(clean_data, scale=1)
             mean = np.median(clean_data)
-            z_threshold=z_threshold/stats.norm.ppf(.75)
-            
+            plot_threshold=self.z_threshold/stats.norm.ppf(.75)*x_std
+        else:
+            x_std = np.std(clean_data)
+            mean = clean_data.mean()
+            plot_threshold=self.z_threshold*x_std
+        
         if line_plot:
             ax[0].plot(data)
         else:
             ax[0].scatter(x=index, y=data)
         ax[0].scatter(outlier_indexes,y=outliers, color = 'red')
-        ax[0].axhline(mean+z_threshold*x_std, color = 'red', lw=0.8, ls='--')
-        ax[0].axhline(mean-z_threshold*x_std, color = 'red', lw=0.8, ls='--')
+        ax[0].axhline(mean+plot_threshold, color = 'red', lw=0.8, ls='--')
+        ax[0].axhline(mean-plot_threshold, color = 'red', lw=0.8, ls='--')
         ax[0].axhline(mean, color = 'green', lw=0.8, ls='-')
         ax[0].set_xlabel('Point Number labels')
         ax[0].set_ylabel('Point Values')
         
         ax[1].hist(data, bins = bins)
-        ax[1].axvline(mean+z_threshold*x_std, color = 'red', lw=0.8, ls='--')
-        ax[1].axvline(mean-z_threshold*x_std, color = 'red', lw=0.8, ls='--')
+        ax[1].axvline(mean+plot_threshold, color = 'red', lw=0.8, ls='--')
+        ax[1].axvline(mean-plot_threshold, color = 'red', lw=0.8, ls='--')
         ax[1].axvline(mean, color = 'green', lw=0.8, ls='--')
         ax[1].set_ylabel('Point Counts')
         ax[1].set_xlabel('Point Values')
