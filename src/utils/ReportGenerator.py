@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 
 import os
 import sys
@@ -13,6 +14,33 @@ sys.path.insert(0, parent_directory) # defined root folder 1 step up
 from utils.config import METHODS_DESCRIPTIONS, \
                          OUTPUT_FOLDER_PATH
 
+from outlier_methods.methods_factory import MethodsFactory
+
+########
+def prepare_mask_report_df(masks_list, methods_name_list):
+    column_names = ['Point Index', 'Outlier score', 'Global Outlier Mask']
+    for method in methods_name_list:
+        column_names.append(method)
+    index = np.arange(len(masks_list[0]))
+    outlier_score = calculate_outlier_score_array(masks_list=masks_list)
+    global_mask = MethodsFactory.combine_outlier_masks(masks_list=masks_list)
+    df_columns = [index, outlier_score, global_mask]
+    for mask in masks_list: 
+        df_columns.append(mask)
+    data_dic = dict(zip(column_names,df_columns))
+    report_df = pd.DataFrame(data_dic)
+    return report_df
+    
+    
+def calculate_outlier_score_array(masks_list):
+    if len(masks_list)>1:
+        outlier_score = np.sum(masks_list, axis = 0)
+    else: 
+        outlier_score = masks_list[0]
+    outlier_score = outlier_score.astype(int)
+    return outlier_score
+
+#########
 
 def export_df_to_excel_file(df, fname):
     if fname is None:

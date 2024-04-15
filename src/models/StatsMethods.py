@@ -77,6 +77,9 @@ def get_z_score_iter_outlier_plots(data, outlier_mask, z_threshold=2, bins = 50,
     if not modified:
         x_std = np.std(clean_data)
         mean = clean_data.mean()
+        print (mean)
+        print (f'{x_std=}') 
+        print (clean_data.max())
     else:
         from statsmodels import robust
         x_std = stats.median_abs_deviation(clean_data, scale=1)
@@ -173,5 +176,95 @@ def get_iqr_anomaly_plots(data, outliers_mask, bins = 50, line_plot=False):
 
     plt.subplots_adjust(hspace=0.7)
     fig.suptitle('Results from IQR method (non-iterative)', fontsize=14)   
+    return fig
+
+
+
+
+
+def get_euclidean_distance(data,single_array):
+    eucl_dist = np.sqrt(((data - single_array)**2).sum(axis=1))
+    return eucl_dist
+
+def get_distance_z_score_mask(data, z_threshold=2, distance_function = get_euclidean_distance):
+    """
+    According to the distance_function defined, the function converts the distance 
+    to z-score, and filters outliers according to the z_threshold defined. returns 
+    a mask of outliers 
+    """
+    mean_point = data.mean(axis=0)
+    dist = distance_function(data,mean_point)
+    z_score = (dist-np.mean(dist) / np.std(dist))
+    anomalies_mask = np.abs(z_score) > z_threshold
+    anomalies_mask = np.squeeze(anomalies_mask)
+    return anomalies_mask
+
+def get_distance_z_score_iterative_method_mask(data, z_threshold = 2, distance_function = get_euclidean_distance):
+    """
+    Identifies values with z-scores > z_threshold  for distance_function, recalculating the mean after each iteration
+    """
+    iter_data = np.array(data, copy=True)
+    iter = 0
+    outliers_mask = get_distance_z_score_mask(data = iter_data, z_threshold=z_threshold, distance_function = distance_function)
+    found_outliers = sum(outliers_mask)>0
+    while found_outliers:# and iter<ITERATION_MAX_NUM_ZSCORE:
+        iter_outliers_mask = get_distance_z_score_mask(data = iter_data, z_threshold=z_threshold, distance_function = distance_function)
+        outliers_mask[iter_outliers_mask]=True
+        found_outliers = sum(iter_outliers_mask)>0
+        iter +=1
+        print (iter)
+    return outliers_mask
+
+@describe_function("eucl. z-score")
+def get_eucl_z_score_iterative_method_mask(data, z_threshold = 2):
+    outliers_mask = get_distance_z_score_iterative_method_mask(data=data, z_threshold = z_threshold, distance_function = get_euclidean_distance)
+    return outliers_mask
+
+
+
+def get_eucl_z_score_iter_outlier_plots(data, outlier_mask, z_threshold=2, bins = 50, line_plot=False, modified=False):
+    "data: np.array"
+    fig, ax = plt.subplots(2,1)       
+    index = np.arange(len(data)).reshape(len(data),1)
+    outlier_indexes = index[outlier_mask]
+    outliers = data[outlier_mask]
+    clean_data = data[np.invert(outlier_mask)] 
+
+    if not modified:
+        x_std = np.std(clean_data)
+        mean = np.mean(clean_data)
+        print (mean)
+        print (f'{x_std=}') 
+        print (clean_data.max())
+        print (clean_data.max()<(mean+x_std*z_threshold))
+        print ('-*'*30)
+    else:
+        from statsmodels import robust
+        x_std = stats.median_abs_deviation(clean_data, scale=1)
+        mean = np.median(clean_data)
+        z_threshold=z_threshold/stats.norm.ppf(.75)
+        
+    if line_plot:
+        ax[0].plot(data)
+    else:
+        ax[0].scatter(x=index, y=data)
+
+    ax[0].scatter(outlier_indexes,y=outliers, color = 'red')
+    ax[0].axhline(mean+z_threshold*x_std, color = 'red', lw=0.8, ls='--')
+    ax[0].axhline(mean, color = 'green', lw=0.8, ls='-')
+    ax[0].set_xlabel('Point Number labels')
+    ax[0].set_ylabel('Euclidean Distance')
+    
+    ax[1].hist(data, bins = bins)
+    ax[1].axvline(mean+z_threshold*x_std, color = 'red', lw=0.8, ls='--')
+    ax[1].axvline(mean, color = 'green', lw=0.8, ls='--')
+    ax[1].set_ylabel('Point Counts')
+    ax[1].set_xlabel('Point Values')
+    
+    plt.subplots_adjust(hspace=0.5)
+    if not modified:
+        fig.suptitle('Results from z-score method on Euclidean distance from mean (iterative)', fontsize=14)   
+    else:
+        fig.suptitle('Results from z-score method on Euclidean distance from median (iterative)', fontsize=14)   
 
     return fig

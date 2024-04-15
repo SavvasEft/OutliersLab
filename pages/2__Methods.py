@@ -18,10 +18,16 @@ sys.path.insert(0, parent_directory) # defined root folder 1 step up
 from src.models.StatsMethods import get_z_score_iter_outlier_plots, \
                                     get_iqr_anomaly_plots, \
                                     get_z_score_iter_outliers_1d_mask, \
-                                    get_iqr_outliers_1d_mask
+                                    get_iqr_outliers_1d_mask, \
+                                    get_eucl_z_score_iterative_method_mask, \
+                                    get_euclidean_distance, \
+                                    get_eucl_z_score_iter_outlier_plots
+                                    
 
 from src.models.MLMethods import get_isolation_forest_outliers_mask, \
                                  get_lof_outlier_mask
+
+from src.outlier_methods.methods_factory import MethodsFactory
                                     
 from src.utils.toolbox import draw_scatter_plot_2d, \
                               draw_line_or_point_plot_1d,\
@@ -32,7 +38,8 @@ from src.utils.toolbox import draw_scatter_plot_2d, \
 from src.utils.ReportGenerator import prepare_outlier_report_df, \
                                       export_dfs_to_excel_sheets, \
                                       export_df_to_csv_file, \
-                                      export_plt_fig
+                                      export_plt_fig, \
+                                      prepare_mask_report_df
                                       
 
 from src.utils.config import CONTAMINATION, \
@@ -44,17 +51,19 @@ from src.utils.config import CONTAMINATION, \
                              
 from src.utils.ReduceDimensions import reduce_to_2d_PCA                
  
+ 
+from src.outlier_methods.methods_factory import MethodsFactory
 
 np_data = st.session_state['np_data']
 data_dimensions = st.session_state['data_dimensions']
-col2 = None
+reduced_data = st.session_state['reduced_data']
 
+col2 = None
 show_z_stats = st.sidebar.checkbox('z-statistics')
 show_iqr_stats = st.sidebar.checkbox('IQR method')
+show_euclidean_z_score_stats = st.sidebar.checkbox('Euclidean z-score method')
 show_isolation_forest = st.sidebar.checkbox('Isolation Forest')
 show_lof = st.sidebar.checkbox('Local Outlier Factor')
-
-
 
 show_line_plot = True
 
@@ -70,6 +79,11 @@ generate_final_report = False
 #                 get_isolation_forest_outliers_mask
 #                 ]
 
+outlier_masks_applied = []
+methods_applied_names = []
+
+
+
 col1, col2 =st.columns([0.6, 0.4])  
 with col1:
     st.header('Outlier Detection')
@@ -79,8 +93,6 @@ with col2:
     st.header('Results')
     st.write('Combining chosen methods')
     st.write('---')
-
-
 
 
 if show_z_stats:
@@ -95,13 +107,39 @@ if show_z_stats:
             median_instead_of_mean = st.toggle('Choose median for z-stats', value=True)
             z_threshold_ax0 = st.slider('Choose threshold for z-scores:', min_value=1., \
                                     max_value = 10., step = 0.25, value = 3.)
+
+########################################
+            #Factory Method:
+            
+            method_name = 'z_score'
+            z_score = MethodsFactory.apply_method(method_name = method_name, \
+                                                   z_threshold = z_threshold_ax0, \
+                                                   modified=median_instead_of_mean)
+            z_score_mask = z_score.get_outlier_mask(data=np_data)
+            fig_ = z_score.get_plot(data=np_data)
+            
+            # z_score_outlier_mask = get_z_score_iter_outliers_1d_mask(data = np_data, z_threshold=z_threshold_ax0)
+            # fig = get_z_score_iter_outlier_plots(data = np_data, outlier_mask=z_score_outlier_mask , z_threshold=z_threshold_ax0, \
+            #                                     line_plot=show_line_plot, modified=median_instead_of_mean)
+            st.pyplot(fig_)
+
+            outlier_masks_applied.append(z_score_mask)
+            methods_applied_names.append(method_name)
+            # chosen_methods_list.append(get_z_score_iter_outliers_1d_mask)
+
+#########################################
+#########################################
+            #Old method to be depracated
             z_score_outlier_mask = get_z_score_iter_outliers_1d_mask(data = np_data, z_threshold=z_threshold_ax0)
             fig = get_z_score_iter_outlier_plots(data = np_data, outlier_mask=z_score_outlier_mask , z_threshold=z_threshold_ax0, \
                                                 line_plot=show_line_plot, modified=median_instead_of_mean)
             st.pyplot(fig)
 
-            chosen_methods_list.append(get_z_score_iter_outliers_1d_mask)    
+            chosen_methods_list.append(get_z_score_iter_outliers_1d_mask)
             outlier_masks_per_chosen_method.append(z_score_outlier_mask)  
+
+#########################################
+
             generate_final_report = True
             print ('--Calculated outliers using z-statistics.')
             st.write('*Method assumes gaussian distribution of data')
@@ -134,8 +172,6 @@ if show_iqr_stats:
     with col1:
         st.header('IQR:')
 
-    
-
         if data_dimensions == 1:
             iqr_outlier_mask = get_iqr_outliers_1d_mask(np_data)
             fig = get_iqr_anomaly_plots(data = np_data, outliers_mask = iqr_outlier_mask, line_plot=show_line_plot)
@@ -158,9 +194,26 @@ if show_iqr_stats:
         #         st.pyplot(fig02)
 
         st.write('---')
-        
 
+if show_euclidean_z_score_stats:
+    with col1:
+        st.header('Euclidean z-score statistics:')
+        #median_instead_of_mean_ = st.toggle('Choose median for z-stats ', value=True)
+        z_threshold_ax0_eucl_dist = st.slider('Choose threshold for Euclidean z-scores:', min_value=1., \
+                                max_value = 10., step = 0.25, value = 3.)
+        z_score_eucl_outlier_mask = get_eucl_z_score_iterative_method_mask(data = np_data, z_threshold=z_threshold_ax0_eucl_dist)
+        eucl_dist_data = get_euclidean_distance(np_data,np_data.mean(axis=0))
+        fig = get_eucl_z_score_iter_outlier_plots(data = eucl_dist_data, outlier_mask=z_score_eucl_outlier_mask,  \
+                                            z_threshold=z_threshold_ax0_eucl_dist, line_plot=show_line_plot, modified=False)
+        st.pyplot(fig)
 
+        chosen_methods_list.append(get_eucl_z_score_iterative_method_mask)    
+        outlier_masks_per_chosen_method.append(z_score_eucl_outlier_mask)  
+        generate_final_report = True
+        print ('--Calculated outliers using euclidean z-statistics.')
+        st.write('*Method assumes gaussian distribution of euclidean distances between data and their mean')
+
+            
 
 
 
@@ -172,7 +225,7 @@ if show_isolation_forest:
 
         contamination = st.slider('Proportion of outliers:', min_value=0.01, \
                                     max_value = 0.5, step = 0.01, value = CONTAMINATION)
-        #contamination = CONTAMINATION
+
         
 
         data = np_data
@@ -188,7 +241,6 @@ if show_isolation_forest:
             fig_forest_isol = draw_scatter_plot_2d(data = np_data, outlier_bool =outlier_mask_isolation_forest)
 
         else:
-            reduced_data = reduce_to_2d_PCA(np_data)
             fig_forest_isol = draw_scatter_plot_2d(data = reduced_data, outlier_bool =outlier_mask_isolation_forest)
             st.write('*Reduced dimensions to 2d (PCA) for visualization.')
 
@@ -225,18 +277,16 @@ if show_lof:
             fig_lof = draw_scatter_plot_2d(data = np_data, outlier_bool = outlier_mask_lof)
 
         else:
-            reduced_data = reduce_to_2d_PCA(np_data)
             fig_lof = draw_scatter_plot_2d(data = reduced_data, outlier_bool =outlier_mask_lof)
             st.write('*Reduced dimensions to 2d (PCA) for visualization.')
-
 
         st.pyplot(fig_lof)
 
         
         chosen_methods_list.append(get_lof_outlier_mask)
         outlier_masks_per_chosen_method.append(outlier_mask_lof)
-        
         generate_final_report = True
+        
     print ('--Calculated outliers using Local Outlier Factor method.')
     st.write('---')    
 
@@ -244,8 +294,20 @@ if show_lof:
 if generate_final_report:
     with col2:
         
+        ######################################
+        #Using MethodsFactory, generate df from all chosen methods: 
+        combined_outlier_mask = MethodsFactory.combine_outlier_masks(masks_list = outlier_masks_applied)
+        print ('-'*8)
+        df = prepare_mask_report_df(masks_list=outlier_masks_applied, methods_name_list=methods_applied_names)
+        st.write(df)
+        print ('-'*8)
+        ######################################
+        
+        
+        
+        
         outlier_report_array, global_outlier_mask = get_outliers_report_and_global_outliers_mask(np_data, outlier_masks_list=outlier_masks_per_chosen_method)
-
+        print (f"------{outlier_report_array.shape}")
         outlier_report = prepare_outlier_report_df(outlier_report_array=outlier_report_array, methods_list=chosen_methods_list)
  
         
@@ -261,6 +323,7 @@ if generate_final_report:
         st.write(f'Outliers found: {outliers_number}')    
         
         if data_dimensions>2:
+            
             reduced_dim_data = reduce_to_2d_PCA(np_data)
             reduced_dim_clean_data = reduced_data[np.invert(global_outlier_mask)]
             fig = get_before_vs_after_plot(data=reduced_dim_data, clean_data=reduced_dim_clean_data,\
@@ -290,7 +353,7 @@ if generate_final_report:
         st.write('**Outlier Score**: Number of methods that identified the specific data point as outlier')
 
         
-        #TODO: CHANGE this. automate the long description generation... 
+        #TODO: CHANGE this with a dic in config to automate the long description generation... 
         for method in chosen_methods_list:
             if method.description not in METHODS_DESCRIPTIONS:
                 raise NameError('ERROR!!! Method names should agree in: 1. When defining the function, 2. On streamlit page that shows \
@@ -302,6 +365,8 @@ if generate_final_report:
                     long_description = f'z-statistics, for z-score larger than {z_threshold_ax0}.'
             elif method.description == 'IQR':
                 long_description = f'Inter-Quartile Range method.'
+            elif method.description == 'eucl. z-score':
+                long_description = f'Euclidean z-score method.'
             elif method.description == "Isol. Forest":
                 long_description = f'Isolation Forest method.'
             elif method.description == "Local Outlier Factor":

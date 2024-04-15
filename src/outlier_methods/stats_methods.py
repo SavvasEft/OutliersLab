@@ -17,13 +17,13 @@ sys.path.insert(0, src_directory)
 
 from outlier_methods.outlier_detector_base import DetectorBase
 
-#from utils.config import ITERATION_MAX_NUM_ZSCORE #, \
-#                         #METHODS_DESCRIPTIONS
+from utils.config import ITERATION_MAX_NUM_ZSCORE
 
-ITERATION_MAX_NUM_ZSCORE=2
-
-class ZScoreMethod:
+class ZScoreMethod(DetectorBase):
     
+    print (ITERATION_MAX_NUM_ZSCORE)
+    
+#                         
     def __init__(self, z_threshold=3, modified=False):
         self.z_threshold = z_threshold
         self.modified = modified
@@ -87,17 +87,24 @@ class ZScoreMethod:
             if iter == ITERATION_MAX_NUM_ZSCORE:
                 print ('Reached maximum number of iterations for z-score method without converging')
 
+            elif not iteration_found_outliers:
+                print ('z-score iterative method converged')
+            
+            else:
+                error_msg = f"Error while performing z-score iterations. Iterative z-score method did not converge, problem with iteration {iter}"
+                print (error_msg)
+                raise ValueError(error_msg)
+
         outliers_mask = np.array([False]*len(data))
         
         outliers_mask[outlier_indexes]=True
         return outliers_mask
     
-    #@lru_cache(maxsize=128)
     def get_outlier_mask(self, data):
         return self.get_outlier_mask_after_multiple_iterations(data=data)
         
     
-    def get_z_score_iter_outlier_plots(self, data, bins = 50, line_plot=False):
+    def get_plot(self, data, bins = 50, line_plot=True):
         "data: np.array"
         fig, ax = plt.subplots(2,1)       
         index = np.arange(len(data)).reshape(len(data),1)

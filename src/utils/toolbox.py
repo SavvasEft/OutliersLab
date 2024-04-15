@@ -3,6 +3,14 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+
+##################################
+
+
+
+###################################
+
+
 def combine_outlier_booleans(*arg_bool):
     """gets any number of outlier_bool from different methods and 
     combines them. It is ment to be used to combine outliers found 
