@@ -17,7 +17,7 @@ class DataReader:
                 except pd.errors.ParserError as e:
                     raise pd.errors.ParserError(f"Error parsing CSV file: {e}")
             else:
-                raise UnsupportedFileTypeError("File type is not supported. Please use .csv or .xlsx files.")
+                raise TypeError("File type is not supported. Please use .csv or .xlsx files.")
         except FileNotFoundError:
             raise FileNotFoundError(f"The file {self.datafile} was not found.")
         except Exception as e:
