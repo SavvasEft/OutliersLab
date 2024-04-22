@@ -1,4 +1,3 @@
-import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.ensemble import IsolationForest
@@ -12,7 +11,7 @@ sys.path.insert(0, parent_directory) # defined root folder 1 step up
 
 from utils.config import CONTAMINATION, N_NEIGHBORS
 
-from utils.toolbox import describe_function
+from utils.toolbox import describe_function, draw_line_or_point_plot_1d, draw_scatter_plot_2d
 
 
 @describe_function("Isol. Forest")

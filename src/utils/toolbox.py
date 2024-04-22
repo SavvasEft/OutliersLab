@@ -234,3 +234,26 @@ def get_before_vs_after_plot(data, clean_data, data_dim):
     
     plt.subplots_adjust(hspace=0.5)
     return fig   
+
+def get_plot_with_1d_or_2d_data_with_mask(data, outliers_mask, title = None, line_plot=True):
+    
+    if data is None:
+        print('eeeeeee')
+ 
+    data_dimensions = data.shape[1]
+    
+    if data_dimensions is None: 
+        data_dimensions=1
+
+    if data_dimensions == 1:    
+        plot = draw_line_or_point_plot_1d(data = data, outlier_bool = outliers_mask, \
+                                            line_plot = line_plot,  \
+                                            title = title)
+
+    elif data_dimensions == 2:
+        plot = draw_scatter_plot_2d(data = data, outlier_bool = outliers_mask, title = title )
+
+    else:
+        raise ValueError('Dimensions of data passed in graphs should be 1 or 2.')
+
+    return plot

@@ -120,6 +120,7 @@ def get_iqr_limits(data):
     upper_limit = third_quar + 1.5 * iqr 
     return lower_limit, upper_limit
 
+
 @describe_function("IQR")
 # function description should agree with METHODS_DESCRIPTIONS in config.py
 def get_iqr_outliers_1d_mask(data):
@@ -201,12 +202,12 @@ def get_distance_z_score_mask(data, z_threshold=2, distance_function = get_eucli
 
 def get_distance_z_score_iterative_method_mask(data, z_threshold = 2, distance_function = get_euclidean_distance):
     """
-    Identifies values with z-scores > z_threshold  for distance_function, recalculating the mean after each iteration
+    Identifies values with z-scores > z_threshold for distance_function, recalculating the mean after each iteration
     """
     iter_data = np.array(data, copy=True)
-    iter = 0
     outliers_mask = get_distance_z_score_mask(data = iter_data, z_threshold=z_threshold, distance_function = distance_function)
     found_outliers = sum(outliers_mask)>0
+    iter = 1    
     while found_outliers:# and iter<ITERATION_MAX_NUM_ZSCORE:
         iter_outliers_mask = get_distance_z_score_mask(data = iter_data, z_threshold=z_threshold, distance_function = distance_function)
         outliers_mask[iter_outliers_mask]=True

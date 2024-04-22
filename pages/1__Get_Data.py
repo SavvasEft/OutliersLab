@@ -1,8 +1,5 @@
 import pandas as pd
-import numpy as np
 import streamlit as st
-import matplotlib.pyplot as plt
-import seaborn as sns
 
 import os
 import sys
@@ -140,4 +137,10 @@ if np_data is not None:
         st.session_state['data_dimensions'] = data_dimensions
     st.session_state['data_dimensions'] = data_dimensions
     
+    if data_dimensions>2:
+        if reduced_data not in st.session_state:
+            st.session_state['reduced_data'] = reduced_data
+        st.session_state['reduced_data'] = reduced_data
+    else:
+        st.session_state['reduced_data'] = None
     

@@ -142,7 +142,7 @@ if show_z_stats:
 
             generate_final_report = True
             print ('--Calculated outliers using z-statistics.')
-            st.write('*Method assumes gaussian distribution of data')
+            st.write('*Method assumes gaussian-like distribution of data')
 
             
 
@@ -172,6 +172,21 @@ if show_iqr_stats:
     with col1:
         st.header('IQR:')
 
+###################################################
+        #Factory method:
+        if data_dimensions == 1:
+            method_name='iqr'
+            iqr_object = MethodsFactory.apply_method(method_name=method_name)
+            iqr_mask = iqr_object.get_outlier_mask(data=np_data) 
+            iqr_plot = iqr_object.get_plot(data=np_data, outliers_mask=iqr_mask)
+            st.pyplot(iqr_plot)
+            outlier_masks_applied.append(iqr_mask)
+            methods_applied_names.append(method_name)
+
+
+###################################################
+
+
         if data_dimensions == 1:
             iqr_outlier_mask = get_iqr_outliers_1d_mask(np_data)
             fig = get_iqr_anomaly_plots(data = np_data, outliers_mask = iqr_outlier_mask, line_plot=show_line_plot)
@@ -181,7 +196,7 @@ if show_iqr_stats:
             outlier_masks_per_chosen_method.append(iqr_outlier_mask)
             generate_final_report = True
             print ('--Calculated outliers using IQR.')
-            st.write('*Method assumes gaussian distribution of data')
+            st.write('*Method assumes gaussian-like distribution of data')
 
         else:
            st.write('Currently z-score is only applicable for 1d data. Chosen data have more dimensions')
@@ -211,7 +226,7 @@ if show_euclidean_z_score_stats:
         outlier_masks_per_chosen_method.append(z_score_eucl_outlier_mask)  
         generate_final_report = True
         print ('--Calculated outliers using euclidean z-statistics.')
-        st.write('*Method assumes gaussian distribution of euclidean distances between data and their mean')
+        st.write('*Method assumes gaussian-like distribution of euclidean distances between data and their mean')
 
             
 
@@ -222,10 +237,32 @@ if show_isolation_forest:
     with col1:
 
         st.header('Isolation Forest:')
-
         contamination = st.slider('Proportion of outliers:', min_value=0.01, \
                                     max_value = 0.5, step = 0.01, value = CONTAMINATION)
+######################################################
+        #factory method:
+        
+        method_name = 'isolation forest'
+        isol_forest_obj = MethodsFactory.apply_method(method_name=method_name, contamination=contamination)
+        isol_forest_mask = isol_forest_obj.get_outlier_mask(data=np_data)
+        
+        if data_dimensions<3:
+            plot_data = np_data
+        else:
+            plot_data = reduced_data
+            
+        
+        isol_forest_plot = isol_forest_obj.get_plot(data=plot_data, outliers_mask=isol_forest_mask)
+        st.pyplot(isol_forest_plot)
 
+        outlier_masks_applied.append(isol_forest_mask)
+        methods_applied_names.append(method_name)
+
+
+
+
+######################################################
+        
         
 
         data = np_data
@@ -263,6 +300,31 @@ if show_lof:
         
         n_neighbors = st.slider('Min number of neighbors for data points: ', min_value=1, \
                                     max_value = 500, step = 1, value = N_NEIGHBORS)
+        
+######################################################
+            #Factory method: 
+            
+
+        method_name = 'local outlier factor'
+        lof_obj = MethodsFactory.apply_method(method_name=method_name, contamination = contamination_lof,\
+                                              n_neighbors = n_neighbors )
+        lof_mask = lof_obj.get_outlier_mask(data=np_data)
+        
+        if data_dimensions<3:
+            plot_data = np_data
+        else:
+            plot_data = reduced_data
+            
+        lof_plot = lof_obj.get_plot(data=plot_data, outliers_mask=lof_mask)
+        st.pyplot(lof_plot)
+
+        outlier_masks_applied.append(lof_mask)
+        methods_applied_names.append(method_name)
+            
+######################################################
+
+        
+
         
         data = np_data
         outlier_mask_lof = get_lof_outlier_mask(data = np_data, \
