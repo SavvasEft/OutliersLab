@@ -1,3 +1,8 @@
+print ('---'*35)
+print ('--')
+print ('Get Data page Starting...')
+print ('--')
+
 import pandas as pd
 import streamlit as st
 
@@ -25,16 +30,16 @@ df_data = None
 
 get_data_from = st.sidebar.radio(
     "Get data from:",
-    ["Uploading file", "Generate 1d data","Generate 2d data", 'Generate 4d data','Generate 2d moons data', \
-        'Generate 4d data with 5 clusters'],
-    index=0,
-)
-
+    ["Uploading file", "Generate 1d data","Generate 2d data", 'Generate 2d moons data', \
+        'Generate 4d data','Generate 4d data with 5 clusters'],
+    index=0)
 
 if get_data_from == 'Uploading file':
+    print('User uploading file...')
     uploaded_type = st.radio(label = 'Choose file type:', options=['.xlsx','.csv'], index=None)
 
     if uploaded_type is not None:
+        print('User uploaded file.')
         feature_names_in_first_row = st.toggle(f'First Row has column names (attributes).')
         index_in_first_column = st.toggle(f'First Column has indices (instance labels).')
 
@@ -53,19 +58,20 @@ if get_data_from == 'Uploading file':
             df_data = pd.read_csv(uploaded_data, header=header, index_col=index_col)           
             np_data = df_data.to_numpy()
 
-
-    
     
     
 elif get_data_from == 'Generate 1d data':
     np_data = get_1d_distr_with_outliers()
     df_data = pd.DataFrame(np_data)
     
-
 elif get_data_from == 'Generate 2d data':
     np_data = get_2d_distr_with_outliers()
     df_data = pd.DataFrame({'0':np_data[:,0], '1':np_data[:,1]})
 
+elif get_data_from == 'Generate 2d moons data':
+    from sklearn.datasets import make_moons
+    np_data, y = make_moons(n_samples=500, noise=0.05, random_state=42)
+    df_data = pd.DataFrame({'0':np_data[:,0], '1':np_data[:,1]})
 
 elif get_data_from == 'Generate 4d data':
     np_data = get_4d_data_norm()
@@ -83,10 +89,7 @@ elif get_data_from == 'Generate 4d data with 5 clusters':
                         '4':np_data[:,3]})
 
 
-elif get_data_from == 'Generate 2d moons data':
-    from sklearn.datasets import make_moons
-    np_data, y = make_moons(n_samples=500, noise=0.05, random_state=42)
-    df_data = pd.DataFrame({'0':np_data[:,0], '1':np_data[:,1]})
+
 
 
 
@@ -143,4 +146,15 @@ if np_data is not None:
         st.session_state['reduced_data'] = reduced_data
     else:
         st.session_state['reduced_data'] = None
+
+
+if get_data_from != 'Uploading file':
+    print ('User chose auto-generated data.')
+
+
     
+print ('--')
+print ('Get Data page done!!!')
+print ('--')
+print ('---'*35)
+

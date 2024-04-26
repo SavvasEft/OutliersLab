@@ -1,5 +1,6 @@
-print ('-'*55)
-print ('Methods page Starting!!!')
+print ('---'*35)
+print ('--')
+print ('Methods page Starting...')
 print ('--')
 
 import pandas as pd
@@ -10,170 +11,90 @@ import numpy as np
 import os
 import sys
 
-st.set_page_config(layout="wide")
-
 parent_directory = os.path.dirname(os.path.dirname(__file__))
 sys.path.insert(0, parent_directory) # defined root folder 1 step up
 
-from src.models.StatsMethods import get_z_score_iter_outlier_plots, \
-                                    get_iqr_anomaly_plots, \
-                                    get_z_score_iter_outliers_1d_mask, \
-                                    get_iqr_outliers_1d_mask, \
-                                    get_eucl_z_score_iterative_method_mask, \
-                                    get_euclidean_distance, \
-                                    get_eucl_z_score_iter_outlier_plots
-                                    
-
-from src.models.MLMethods import get_isolation_forest_outliers_mask, \
-                                 get_lof_outlier_mask
-
 from src.outlier_methods.methods_factory import MethodsFactory
-                                    
-from src.utils.toolbox import draw_scatter_plot_2d, \
-                              draw_line_or_point_plot_1d,\
-                              get_outliers_report_and_global_outliers_mask, \
-                              get_before_vs_after_plot
-                              
-                              
-from src.utils.ReportGenerator import prepare_outlier_report_df, \
-                                      export_dfs_to_excel_sheets, \
+from src.utils.ReduceDimensions import reduce_to_2d_PCA                                                  
+from src.utils.toolbox import get_before_vs_after_plot
+from src.utils.ReportGenerator import export_dfs_to_excel_sheets, \
                                       export_df_to_csv_file, \
                                       export_plt_fig, \
-                                      prepare_mask_report_df
-                                      
-
+                                      prepare_mask_report_df, \
+                                      get_quantitative_data_from_mask_report
 from src.utils.config import CONTAMINATION, \
-                             METHODS_DESCRIPTIONS, \
-                             SUMMARY_OUTPUT_XLSX_FNAME, \
-                             CLEAN_DATA_FILENAME , \
                              N_NEIGHBORS, \
-                             BEFORE_VS_AFTER_GRAPH_NAME
+                             Z_THRESHOLD
                              
-from src.utils.ReduceDimensions import reduce_to_2d_PCA                
- 
- 
-from src.outlier_methods.methods_factory import MethodsFactory
+from src.utils.config import FNAMES
+
+st.set_page_config(layout="wide")
 
 np_data = st.session_state['np_data']
 data_dimensions = st.session_state['data_dimensions']
 reduced_data = st.session_state['reduced_data']
-
-col2 = None
-show_z_stats = st.sidebar.checkbox('z-statistics')
-show_iqr_stats = st.sidebar.checkbox('IQR method')
-show_euclidean_z_score_stats = st.sidebar.checkbox('Euclidean z-score method')
-show_isolation_forest = st.sidebar.checkbox('Isolation Forest')
-show_lof = st.sidebar.checkbox('Local Outlier Factor')
 
 show_line_plot = True
 
 df_list_for_output = []
 sheets_name_list_for_output = []
 header_bool_list = []
-chosen_methods_list = []
-outlier_masks_per_chosen_method = []
 generate_final_report = False
-# chosen_methods_list = [get_z_score_outliers_1d_mask, \
-#                 get_z_score_iter_outliers_1d_mask, \
-#                 get_iqr_outliers_1d_mask, \
-#                 get_isolation_forest_outliers_mask
-#                 ]
-
 outlier_masks_applied = []
 methods_applied_names = []
 
-
+show_z_stats = st.sidebar.checkbox('z-statistics')
+show_iqr_stats = st.sidebar.checkbox('IQR method')
+show_euclidean_z_score_stats = st.sidebar.checkbox('Euclidean z-score method', value=True)
+show_isolation_forest = st.sidebar.checkbox('Isolation Forest', value=True)
+show_lof = st.sidebar.checkbox('Local Outlier Factor', value=True)
 
 col1, col2 =st.columns([0.6, 0.4])  
 with col1:
     st.header('Outlier Detection')
-    st.write('Tune Algorithms & Plot Findings')
-    st.write('---')
-with col2:
-    st.header('Results')
-    st.write('Combining chosen methods')
+    st.write('Tune chosen algorithms')
     st.write('---')
 
+with col2:
+    st.header('Findings')
+    st.write('Outliers found when chosen methods are combined')
+    details_on = st.toggle('Show details')
+    st.write('---')
 
 if show_z_stats:
     with col1: 
         st.header('z-statistics:')
-
         
-        #un-comment when more than 1 dimensions are valid for z-stats, and after delete if elsewhere
-        #median_instead_of_mean = st.toggle('Choose median for z-stats')
-
         if data_dimensions == 1:
             median_instead_of_mean = st.toggle('Choose median for z-stats', value=True)
-            z_threshold_ax0 = st.slider('Choose threshold for z-scores:', min_value=1., \
+            z_threshold_ax0 = st.slider('Choose z-threshold for z-scores:', min_value=1., \
                                     max_value = 10., step = 0.25, value = 3.)
 
-########################################
-            #Factory Method:
             
             method_name = 'z_score'
             z_score = MethodsFactory.apply_method(method_name = method_name, \
                                                    z_threshold = z_threshold_ax0, \
                                                    modified=median_instead_of_mean)
             z_score_mask = z_score.get_outlier_mask(data=np_data)
-            fig_ = z_score.get_plot(data=np_data)
-            
-            # z_score_outlier_mask = get_z_score_iter_outliers_1d_mask(data = np_data, z_threshold=z_threshold_ax0)
-            # fig = get_z_score_iter_outlier_plots(data = np_data, outlier_mask=z_score_outlier_mask , z_threshold=z_threshold_ax0, \
-            #                                     line_plot=show_line_plot, modified=median_instead_of_mean)
-            st.pyplot(fig_)
-
+            z_score_plot = z_score.get_plot(data=np_data)
+            st.pyplot(z_score_plot)
             outlier_masks_applied.append(z_score_mask)
             methods_applied_names.append(method_name)
-            # chosen_methods_list.append(get_z_score_iter_outliers_1d_mask)
-
-#########################################
-#########################################
-            #Old method to be depracated
-            z_score_outlier_mask = get_z_score_iter_outliers_1d_mask(data = np_data, z_threshold=z_threshold_ax0)
-            fig = get_z_score_iter_outlier_plots(data = np_data, outlier_mask=z_score_outlier_mask , z_threshold=z_threshold_ax0, \
-                                                line_plot=show_line_plot, modified=median_instead_of_mean)
-            st.pyplot(fig)
-
-            chosen_methods_list.append(get_z_score_iter_outliers_1d_mask)
-            outlier_masks_per_chosen_method.append(z_score_outlier_mask)  
-
-#########################################
-
             generate_final_report = True
-            print ('--Calculated outliers using z-statistics.')
             st.write('*Method assumes gaussian-like distribution of data')
-
-            
-
-
+            save_zscore_plot = st.toggle(f'Save plot as {FNAMES.ZSCORE_PLOT_PNG_NAME}.png', value=False)
+            if save_zscore_plot:
+                export_plt_fig(z_score_plot, fname=FNAMES.ZSCORE_PLOT_PNG_NAME)
+            print ('--Calculated outliers using z-statistics.')
 
         elif data_dimensions != 1:       
             st.write('Currently z-score is only applicable for 1d data. Chosen data have more dimensions')
-            # with col1:
-
-            #     z_threshold_ax0 = st.slider('Choose threshold for z-scores for ax0:', min_value=1., \
-            #                             max_value = 10., step = 0.25, value = 3.)
-            #     fig1 = get_z_score_iter_outlier_plots(data = np_data[:,0], z_threshold=z_threshold_ax0, \
-            #                                         line_plot=show_line_plot, modified=median_instead_of_mean)
-            #     st.pyplot(fig1)
-            
-
-            #     z_threshold_ax1 = st.slider('Choose threshold for z-scores for ax1:', min_value=1., \
-            #                             max_value = 10., step = 0.25, value = 3.)
-            #     fig2 = get_z_score_iter_outlier_plots(data = np_data[:,1], z_threshold=z_threshold_ax1, \
-            #                                         line_plot=show_line_plot, modified=median_instead_of_mean)
-            #     st.pyplot(fig2)
-
         st.write('---')
-        
         
 if show_iqr_stats:
     with col1:
         st.header('IQR:')
 
-###################################################
-        #Factory method:
         if data_dimensions == 1:
             method_name='iqr'
             iqr_object = MethodsFactory.apply_method(method_name=method_name)
@@ -182,330 +103,196 @@ if show_iqr_stats:
             st.pyplot(iqr_plot)
             outlier_masks_applied.append(iqr_mask)
             methods_applied_names.append(method_name)
-
-
-###################################################
-
-
-        if data_dimensions == 1:
-            iqr_outlier_mask = get_iqr_outliers_1d_mask(np_data)
-            fig = get_iqr_anomaly_plots(data = np_data, outliers_mask = iqr_outlier_mask, line_plot=show_line_plot)
-            st.pyplot(fig)
-
-            chosen_methods_list.append(get_iqr_outliers_1d_mask)
-            outlier_masks_per_chosen_method.append(iqr_outlier_mask)
             generate_final_report = True
             print ('--Calculated outliers using IQR.')
             st.write('*Method assumes gaussian-like distribution of data')
+            save_iqr_plot = st.toggle(f'Save plot as {FNAMES.IQR_PLOT_PNG_NAME}.png', value=False)
+            if save_iqr_plot:
+                export_plt_fig(iqr_plot, fname=FNAMES.IQR_PLOT_PNG_NAME)
+
 
         else:
            st.write('Currently z-score is only applicable for 1d data. Chosen data have more dimensions')
-        # elif data_dimensions == 2:
-        #     with col1:
-        #         fig01 = get_iqr_anomaly_plots(data = np_data[:,0], line_plot=show_line_plot)
-        #         st.pyplot(fig01)
-        #     with col2:
-        #         fig02 = get_iqr_anomaly_plots(data = np_data[:,1], line_plot=show_line_plot)
-        #         st.pyplot(fig02)
-
         st.write('---')
 
 if show_euclidean_z_score_stats:
     with col1:
-        st.header('Euclidean z-score statistics:')
-        #median_instead_of_mean_ = st.toggle('Choose median for z-stats ', value=True)
-        z_threshold_ax0_eucl_dist = st.slider('Choose threshold for Euclidean z-scores:', min_value=1., \
-                                max_value = 10., step = 0.25, value = 3.)
-        z_score_eucl_outlier_mask = get_eucl_z_score_iterative_method_mask(data = np_data, z_threshold=z_threshold_ax0_eucl_dist)
-        eucl_dist_data = get_euclidean_distance(np_data,np_data.mean(axis=0))
-        fig = get_eucl_z_score_iter_outlier_plots(data = eucl_dist_data, outlier_mask=z_score_eucl_outlier_mask,  \
-                                            z_threshold=z_threshold_ax0_eucl_dist, line_plot=show_line_plot, modified=False)
-        st.pyplot(fig)
-
-        chosen_methods_list.append(get_eucl_z_score_iterative_method_mask)    
-        outlier_masks_per_chosen_method.append(z_score_eucl_outlier_mask)  
+        st.header('Euclidean distance z-score method:')
+        z_threshold_ax0_eucl_dist = st.slider('Choose z-threshold for Euclidean z-scores:', min_value=1., \
+                                max_value = 10., step = 0.25, value = Z_THRESHOLD)
+        method_name = 'euclidean distance'
+        eucl_obj = MethodsFactory.apply_method(method_name = method_name, \
+                                                z_threshold = z_threshold_ax0_eucl_dist)
+        eucl_mask = eucl_obj.get_outlier_mask(data=np_data)
+        eucl_plot = eucl_obj.get_plot(data=np_data)
+        st.pyplot(eucl_plot)
+        outlier_masks_applied.append(eucl_mask)
+        methods_applied_names.append(method_name)
         generate_final_report = True
         print ('--Calculated outliers using euclidean z-statistics.')
         st.write('*Method assumes gaussian-like distribution of euclidean distances between data and their mean')
+        save_eucl_plot = st.toggle(f'Save plot as {FNAMES.EUCL_PLOT_PNG_NAME}.png', value=False)
+        if save_eucl_plot:
+            export_plt_fig(eucl_plot, fname=FNAMES.EUCL_PLOT_PNG_NAME)
 
-            
-
-
-
+        st.write('---')
 
 if show_isolation_forest:
     with col1:
-
         st.header('Isolation Forest:')
         contamination = st.slider('Proportion of outliers:', min_value=0.01, \
                                     max_value = 0.5, step = 0.01, value = CONTAMINATION)
-######################################################
-        #factory method:
-        
         method_name = 'isolation forest'
         isol_forest_obj = MethodsFactory.apply_method(method_name=method_name, contamination=contamination)
         isol_forest_mask = isol_forest_obj.get_outlier_mask(data=np_data)
-        
+
         if data_dimensions<3:
             plot_data = np_data
         else:
             plot_data = reduced_data
-            
-        
+       
         isol_forest_plot = isol_forest_obj.get_plot(data=plot_data, outliers_mask=isol_forest_mask)
         st.pyplot(isol_forest_plot)
-
+        st.write('*Reduced dimensions to 2d (PCA) for visualization.')
         outlier_masks_applied.append(isol_forest_mask)
         methods_applied_names.append(method_name)
-
-
-
-
-######################################################
-        
-        
-
-        data = np_data
-        outlier_mask_isolation_forest = get_isolation_forest_outliers_mask(data = np_data, \
-                                                                            contamination=contamination)
-
-        if data_dimensions == 1:
-            fig_forest_isol = draw_line_or_point_plot_1d(data = np_data, outlier_bool = outlier_mask_isolation_forest, \
-                                                        line_plot = show_line_plot,  \
-                                                        title = 'Outliers found using Isolation Forest')
-
-        elif data_dimensions == 2:
-            fig_forest_isol = draw_scatter_plot_2d(data = np_data, outlier_bool =outlier_mask_isolation_forest)
-
-        else:
-            fig_forest_isol = draw_scatter_plot_2d(data = reduced_data, outlier_bool =outlier_mask_isolation_forest)
-            st.write('*Reduced dimensions to 2d (PCA) for visualization.')
-
-
-        st.pyplot(fig_forest_isol)
-            
-        chosen_methods_list.append(get_isolation_forest_outliers_mask)  
-        outlier_masks_per_chosen_method.append(outlier_mask_isolation_forest)
         generate_final_report = True
+        save_isol_forest_plot = st.toggle(f'Save plot as {FNAMES.ISOL_FOREST_PLOT_PNG_NAME}.png', value=False)
+        if save_isol_forest_plot:
+            export_plt_fig(isol_forest_plot, fname=FNAMES.ISOL_FOREST_PLOT_PNG_NAME)
+        st.write('---')
+
     print ('--Calculated outliers using Isolation forest method.')
-    st.write('---')
     
     
 if show_lof:
     with col1:
         st.header('Local Outlier Factor:')
-        
         contamination_lof = st.slider('Proportion of outliers: ', min_value=0.01, \
-                                    max_value = 0.5, step = 0.01, value = CONTAMINATION)
-        
+                                    max_value = 0.5, step = 0.01, value = CONTAMINATION)       
         n_neighbors = st.slider('Min number of neighbors for data points: ', min_value=1, \
                                     max_value = 500, step = 1, value = N_NEIGHBORS)
-        
-######################################################
-            #Factory method: 
-            
-
         method_name = 'local outlier factor'
         lof_obj = MethodsFactory.apply_method(method_name=method_name, contamination = contamination_lof,\
                                               n_neighbors = n_neighbors )
         lof_mask = lof_obj.get_outlier_mask(data=np_data)
-        
         if data_dimensions<3:
             plot_data = np_data
         else:
             plot_data = reduced_data
-            
         lof_plot = lof_obj.get_plot(data=plot_data, outliers_mask=lof_mask)
         st.pyplot(lof_plot)
-
         outlier_masks_applied.append(lof_mask)
         methods_applied_names.append(method_name)
-            
-######################################################
-
-        
-
-        
-        data = np_data
-        outlier_mask_lof = get_lof_outlier_mask(data = np_data, \
-                                                contamination=contamination_lof, \
-                                                n_neighbors=n_neighbors)
-        if data_dimensions == 1:
-            fig_lof = draw_line_or_point_plot_1d(data = np_data, outlier_bool = outlier_mask_lof, \
-                                                 line_plot = show_line_plot, 
-                                                 title = 'Outliers found using Local Outlier Factor')
-
-        elif data_dimensions == 2:
-            fig_lof = draw_scatter_plot_2d(data = np_data, outlier_bool = outlier_mask_lof)
-
-        else:
-            fig_lof = draw_scatter_plot_2d(data = reduced_data, outlier_bool =outlier_mask_lof)
-            st.write('*Reduced dimensions to 2d (PCA) for visualization.')
-
-        st.pyplot(fig_lof)
-
-        
-        chosen_methods_list.append(get_lof_outlier_mask)
-        outlier_masks_per_chosen_method.append(outlier_mask_lof)
         generate_final_report = True
-        
+        save_lof_plot = st.toggle(f'Save plot as {FNAMES.LOF_PLOT_PNG_NAME}.png', value=False)
+        if save_lof_plot:
+            export_plt_fig(lof_plot, fname=FNAMES.LOF_PLOT_PNG_NAME)
+
+        st.write('---')    
     print ('--Calculated outliers using Local Outlier Factor method.')
-    st.write('---')    
 
 
 if generate_final_report:
     with col2:
-        
-        ######################################
-        #Using MethodsFactory, generate df from all chosen methods: 
         combined_outlier_mask = MethodsFactory.combine_outlier_masks(masks_list = outlier_masks_applied)
-        print ('-'*8)
-        df = prepare_mask_report_df(masks_list=outlier_masks_applied, methods_name_list=methods_applied_names)
-        st.write(df)
-        print ('-'*8)
-        ######################################
-        
-        
-        
-        
-        outlier_report_array, global_outlier_mask = get_outliers_report_and_global_outliers_mask(np_data, outlier_masks_list=outlier_masks_per_chosen_method)
-        print (f"------{outlier_report_array.shape}")
-        outlier_report = prepare_outlier_report_df(outlier_report_array=outlier_report_array, methods_list=chosen_methods_list)
- 
-        
-        outliers_number = len(outlier_report)
-        raw_data_points_number = len(np_data)
-        outliers_prc = round(outliers_number/raw_data_points_number*100,1)
-        
-        clean_data = np_data[np.invert(global_outlier_mask)]
+        clean_data = np_data[np.invert(combined_outlier_mask)]
         clean_data_df = pd.DataFrame(clean_data)
-        
-        st.header(f'{outliers_prc}% of data are outliers.')
-        st.write(f'Number of data points checked: {raw_data_points_number}')
-        st.write(f'Outliers found: {outliers_number}')    
-        
-        if data_dimensions>2:
-            
-            reduced_dim_data = reduce_to_2d_PCA(np_data)
-            reduced_dim_clean_data = reduced_data[np.invert(global_outlier_mask)]
-            fig = get_before_vs_after_plot(data=reduced_dim_data, clean_data=reduced_dim_clean_data,\
-                                           data_dim = 2)
-            st.write('*Reduced dimensions to 2d (PCA) for visualization.')
-            
-        elif data_dimensions<3:
-            fig = get_before_vs_after_plot(data=np_data, clean_data=clean_data, data_dim = data_dimensions)
-                      
-        st.pyplot(fig)
-        save_clean_vs_data_dirty_graph = st.toggle(f'Save graph as {BEFORE_VS_AFTER_GRAPH_NAME}.png')
+        outliers_found = np_data[combined_outlier_mask]
+        outliers_found_df = pd.DataFrame(outliers_found)
+        combined_outlier_mask_df = pd.DataFrame(combined_outlier_mask)
+        outlier_report_df = prepare_mask_report_df(masks_list=outlier_masks_applied, methods_name_list=methods_applied_names)
+        outlier_descr = get_quantitative_data_from_mask_report(outlier_report_df)
+        no_of_points, _ = np_data.shape
+        st.header(f"{outlier_descr['outliers_prc']} % of data are outliers.")
+        st.write(f"- {outlier_descr['outliers_num']} outlier points out of total {outlier_descr['data_points_num']}")
+        if details_on:
+            for method, mask  in zip(methods_applied_names,outlier_masks_applied):
+                outlier_num_from_method = sum(mask)
+                outlier_prc = round(outlier_num_from_method*100/no_of_points,1)
+                st.write(f'- {outlier_num_from_method}  ({outlier_prc}%) found using {method}')
 
 
-        st.write('-'*16)       
-        st.header('Outlier Final Report')      
-        st.write(outlier_report)    
-
-        save_outlier_report = st.toggle(f'Save as sheet in {SUMMARY_OUTPUT_XLSX_FNAME}.xlsx')
-        if save_outlier_report:
-            df_list_for_output.append(outlier_report)
-            sheets_name_list_for_output.append('Outlier_report')
-            header_bool_list.append(True)
-
-            
-        st.write('**Point index**: Number of row in data that was identified as an outlier by at least one of the chosen methods.')
-
+        st.write('---')
+        st.header('Outlier Report') 
+        st.write('Report on each point with outlier scores, methods that identified point as outlier, and the final decision if a point is an outlier or not based on chosen methods.')
+        st.write(outlier_report_df)
+        st.write('**Point index**: Number of row in raw data.')
         st.write('**Outlier Score**: Number of methods that identified the specific data point as outlier')
-
-        
-        #TODO: CHANGE this with a dic in config to automate the long description generation... 
-        for method in chosen_methods_list:
-            if method.description not in METHODS_DESCRIPTIONS:
-                raise NameError('ERROR!!! Method names should agree in: 1. When defining the function, 2. On streamlit page that shows \
-                                the report and last 3. in METHODS_DESCRIPTION in config.py. Number 1 and 3 do not agree.')
-            if method.description == 'z-score':
-                if median_instead_of_mean:
-                    long_description = f'modified z-statistics, for modified z-score larger than {z_threshold_ax0}.'
-                else:                
-                    long_description = f'z-statistics, for z-score larger than {z_threshold_ax0}.'
-            elif method.description == 'IQR':
-                long_description = f'Inter-Quartile Range method.'
-            elif method.description == 'eucl. z-score':
-                long_description = f'Euclidean z-score method.'
-            elif method.description == "Isol. Forest":
-                long_description = f'Isolation Forest method.'
-            elif method.description == "Local Outlier Factor":
-                long_description = f'Local Outlier Factor method.'
-            else:
-                raise NameError('ERROR!!! Method names should agree in all next three positions: 1. When defining the function,\
-                                2. On streamlit page that shows the report and last 3. in METHODS_DESCRIPTION in config.py.\
-                                -> Number (2) does not agree with the other two.')                
-                       
-            st.write( f'**{method.description}**: Outliers (marked with 1) found using {long_description}')
-            
-        st.write('-'*16)
+        st.write('**Global Outlier Mask**: An outlier mask of all the points. True if any one of chosen methods identified point as an outlier')
+        st.write('Other columns with descriptive method names show if point was identified as outlier (True) from the method or not (False)')      
+        st.write('---')
 
 
-        st.header('Outliers Found:')
-        outliers_found_df = pd.DataFrame(np_data[global_outlier_mask])
-        st.write(outliers_found_df)
-        save_outliers = st.toggle(f'Save outliers as sheet in {SUMMARY_OUTPUT_XLSX_FNAME}.xlsx')
-        if save_outliers:
-            df_list_for_output.append(outliers_found_df)
-            sheets_name_list_for_output.append('Outliers')
-            header_bool_list.append(False)
-        st.write('-'*16)        
+        if data_dimensions>2:
+            reduced_dim_data = reduce_to_2d_PCA(np_data)
+            reduced_dim_clean_data = reduced_data[np.invert(combined_outlier_mask)]
+            clean_vs_raw_data_plot = get_before_vs_after_plot(data=reduced_dim_data, clean_data=reduced_dim_clean_data,\
+                                        data_dim = 2)
+        elif data_dimensions<3:
+            clean_vs_raw_data_plot = get_before_vs_after_plot(data=np_data, clean_data=clean_data, data_dim = data_dimensions)
 
-        st.write('-'*16)
+        if details_on:                                
+            st.pyplot(clean_vs_raw_data_plot)
+            if data_dimensions>2:
+                st.write('*Reduced dimensions to 2d (PCA) for visualization.')
+            st.write('---')
 
-        st.header('Clean data:')
+        st.header('Saving options')
+        prepare_xls_report = st.toggle(f'Save Outlier Report in {FNAMES.SUMMARY_OUTPUT_XLSX_FNAME}.xlsx', value=True)
+        save_clean_data_as_csv = st.toggle(f'Save Clean Data as {FNAMES.CLEAN_DATA_CSV_FNAME}.csv', value=True)
+        save_global_outlier_mask_as_csv = st.toggle(f'Save Global Outlier Mask as {FNAMES.GLOBAL_OUTLIER_MASK_CSV_FNAME}.csv', value=True)
+        save_clean_vs_raw_data_plot = st.toggle(f'Save clean Vs raw data plot as  {FNAMES.BEFORE_VS_AFTER_PLOT_NAME}.png', value=True)
 
-        
-        if data_dimensions == 1:
-            a = None
-            #plot 1d clean data
-        elif data_dimensions == 2:
-            a = None
-            #plot 2d clean data
-        else:
-            a = None
-            # reduce dimensions to two
-            # plot 2d data
-                    
+        if prepare_xls_report:
+            st.subheader('Sheets included in the Outlier Report xlsx File:')
+
+            save_outlier_report = st.toggle('Outlier Report', value=True)
+            if save_outlier_report:
+                df_list_for_output.append(outlier_report_df)
+                sheets_name_list_for_output.append('Outlier Report')
+                header_bool_list.append(True)
                 
-        st.write(clean_data_df)
+            save_clean_data_as_sheet = st.toggle(f'Clean data', value=True)
+            if save_clean_data_as_sheet:
+                df_list_for_output.append(clean_data_df)
+                sheets_name_list_for_output.append('Clean Data')
+                header_bool_list.append(False)
 
-        save_clean_data_as_sheet = st.toggle(f'Save clean data as sheet in {SUMMARY_OUTPUT_XLSX_FNAME}.xlsx')
+            save_outliers_mask_as_sheet = st.toggle(f'Global Outliers Mask', value=True)
+            if save_outliers_mask_as_sheet:
+                df_list_for_output.append(combined_outlier_mask_df)
+                sheets_name_list_for_output.append('Global Outliers Mask')
+                header_bool_list.append(False)
 
-        save_clean_data_as_csv = st.toggle(f'Save clean data as {CLEAN_DATA_FILENAME}.csv')
-
-
-        if save_clean_data_as_sheet:
-            df_list_for_output.append(clean_data_df)
-            sheets_name_list_for_output.append('Clean_Data')
-            header_bool_list.append(False)
-
-        if save_clean_data_as_csv:
-            export_df_to_csv_file(df = clean_data_df, fname = CLEAN_DATA_FILENAME)
+            save_outliers_as_sheet = st.toggle('Outliers', value=True)
+            if save_outliers_as_sheet:
+                df_list_for_output.append(outliers_found_df)
+                sheets_name_list_for_output.append('Outliers')
+                header_bool_list.append(False)
             
-        if save_clean_vs_data_dirty_graph:
-            export_plt_fig(fig, fname=BEFORE_VS_AFTER_GRAPH_NAME)
-            
-        st.write('-'*16)        
+            st.write('---')
 
-        st.write('-'*16)
+#Export files:
+    if len(df_list_for_output)>0:
+        export_dfs_to_excel_sheets(df_list=df_list_for_output, \
+                                sheet_name_list=sheets_name_list_for_output, \
+                                fname=FNAMES.SUMMARY_OUTPUT_XLSX_FNAME, \
+                                header_bool_list=header_bool_list)
 
+    if save_clean_data_as_csv:
+        export_df_to_csv_file(df = clean_data_df, fname = FNAMES.CLEAN_DATA_CSV_FNAME)
+    
+    if details_on:
+        if save_clean_vs_raw_data_plot:
+            export_plt_fig(clean_vs_raw_data_plot, fname=FNAMES.BEFORE_VS_AFTER_PLOT_NAME)
+    
+st.write('---')        
 
-#write data to xlsx:
-if len(df_list_for_output)>0:
-    export_dfs_to_excel_sheets(df_list=df_list_for_output, \
-                               sheet_name_list=sheets_name_list_for_output, \
-                               fname=SUMMARY_OUTPUT_XLSX_FNAME, \
-                               header_bool_list=header_bool_list)
     
 
 print ('--')
 print ('Methods page done!!!')
-print ('---'*55)
+print ('--')
+print ('---'*35)
 
-
-#TODO:  simplify the procedure of adding a method to the page. 
-#       Problem to solve: finetuning for different mehtods may require different parameters
-#       Possible solution: add if functions to add/remove sliders/tick boxes for different methods 

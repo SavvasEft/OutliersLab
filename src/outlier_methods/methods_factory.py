@@ -2,12 +2,11 @@ import os
 import sys
 import numpy as np
 
-current_directory =  os.getcwd()
-src_directory = os.path.join(os.path.dirname(current_directory), 'src')
-sys.path.insert(0, src_directory)  
+current_directory =  os.path.abspath(os.path.dirname(__file__))
+src_directory = os.path.join(os.path.dirname(current_directory))
+sys.path.insert(0, src_directory)
 
-from outlier_methods.stats_methods import ZScoreMethod, IQRMethod
-
+from outlier_methods.stats_methods import ZScoreMethod, IQRMethod, EuclideanDistZScoreMethod
 from outlier_methods.ml_methods import IsolationForestMethod, LocalOutlierFactorMethod
 
 class MethodsFactory:
@@ -16,6 +15,7 @@ class MethodsFactory:
         "iqr": IQRMethod, 
         "isolation forest": IsolationForestMethod,
         "local outlier factor": LocalOutlierFactorMethod,
+        "euclidean distance": EuclideanDistZScoreMethod
         # other methods...
     }
 

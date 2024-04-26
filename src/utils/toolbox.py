@@ -229,7 +229,7 @@ def get_before_vs_after_plot(data, clean_data, data_dim):
         axs[1].set_ylabel('Axes 2 Values')
     
 
-    axs[0].title.set_text('Dirty data')
+    axs[0].title.set_text('Raw data')
     axs[1].title.set_text('Clean data')
     
     plt.subplots_adjust(hspace=0.5)

@@ -5,14 +5,6 @@ current_directory =  os.path.abspath(os.path.dirname(__file__))
 grand_parent_directory = os.path.dirname(os.path.dirname(current_directory))
 sys.path.insert(0, grand_parent_directory) # defined root folder 1 step up
 
-# from StatsMethods import get_z_score_iter_outliers_1d_mask, \
-#                          get_iqr_outliers_1d_mask, \
-#                          get_eucl_z_score_iterative_method_mas, \
-#                          get_lof_outlier_mask
-
-# from MLMethods import get_isolation_forest_outliers_mask, \
-#                       get_lof_outlier_mask
-                         
 
 OUTPUT_FOLDER_PATH = os.path.join(grand_parent_directory, 'output')
 
@@ -25,33 +17,22 @@ CONTAMINATION = 0.1
 # Used in LOF method
 N_NEIGHBORS = 24
 
+Z_THRESHOLD = 2.5
 
-# Used for reminder, for raising exception and reminding to modify
-# method description in all places that it is used
-# METHODS_DICT = {
-#                 'z-score' : get_z_score_iter_outliers_1d_mask,\
-#                 'IQR' : get_iqr_outliers_1d_mask,\
-#                 'eucl. z-score': get_eucl_z_score_iterative_method_mask,\
-#                 'Isol. Forest': get_isolation_forest_outliers_mask,\
-#                 'Local Outlier Factor': get_lof_outlier_mask
-# }
-                         
-
-
-METHODS_DESCRIPTIONS = ['z-score', \
-                        'IQR', \
-                        'eucl. z-score', \
-                        'Isol. Forest', \
-                        'Local Outlier Factor']
-
-SUMMARY_OUTPUT_XLSX_FNAME = 'outlier_report'
-
-#file name for csv output:
-CLEAN_DATA_FILENAME = 'clean_data'
-
-BEFORE_VS_AFTER_GRAPH_NAME = 'cleanVsdirty_data_plot'
 
 # Axes name default values for figs:
-#For 1d graphs
+#For 1d plots
 POINT_VALUE_NAME = 'Point Values'
 NUMBERED_LABELS_NAME = 'Numbered Labels'
+
+class FNAMES:
+    
+    SUMMARY_OUTPUT_XLSX_FNAME = 'OutlierReport'
+    CLEAN_DATA_CSV_FNAME = 'CleanData'
+    BEFORE_VS_AFTER_PLOT_NAME = 'CleanVsRaw_data_plot'
+    GLOBAL_OUTLIER_MASK_CSV_FNAME = 'OutlierLabels'
+    ZSCORE_PLOT_PNG_NAME = 'ZScore_plot'
+    IQR_PLOT_PNG_NAME = 'IQR_plot'
+    EUCL_PLOT_PNG_NAME = 'Euclidean_Zscore_plot'
+    ISOL_FOREST_PLOT_PNG_NAME = 'Isolation_Forest_plot'
+    LOF_PLOT_PNG_NAME = 'LocalOutlierFactor_plot'

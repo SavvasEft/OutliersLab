@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import os
 import sys
 
-current_directory =  os.getcwd()
+current_directory =  os.path.dirname(__file__)
 parent_directory = os.path.dirname(current_directory)
 
 sys.path.insert(0, parent_directory) # defined root folder 1 step 

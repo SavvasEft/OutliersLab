@@ -3,7 +3,7 @@ import pandas as pd
 import sys
 import pytest
 
-current_directory =  os.getcwd()
+current_directory =  os.path.dirname(__file__)
 parent_directory = os.path.dirname(current_directory)
 modules_folder = os.path.join(parent_directory, 'modules_folderA') 
 

@@ -11,12 +11,20 @@ current_directory =  os.path.abspath(os.path.dirname(__file__))
 parent_directory = os.path.dirname(current_directory)
 sys.path.insert(0, parent_directory) # defined root folder 1 step up
 
-from utils.config import METHODS_DESCRIPTIONS, \
-                         OUTPUT_FOLDER_PATH
+from utils.config import OUTPUT_FOLDER_PATH
 
 from outlier_methods.methods_factory import MethodsFactory
 
 ########
+def get_quantitative_data_from_mask_report(df:pd.DataFrame) -> dict:
+    outliers_num = df['Global Outlier Mask'].sum()
+    data_points_num = len(df['Global Outlier Mask'])
+    outliers_prc = round(outliers_num * 100 / data_points_num,1)
+    description = {'outliers_num':outliers_num, \
+                    'data_points_num':data_points_num, \
+                    'outliers_prc':outliers_prc}
+    return description
+    
 def prepare_mask_report_df(masks_list, methods_name_list):
     column_names = ['Point Index', 'Outlier score', 'Global Outlier Mask']
     for method in methods_name_list:
@@ -30,8 +38,7 @@ def prepare_mask_report_df(masks_list, methods_name_list):
     data_dic = dict(zip(column_names,df_columns))
     report_df = pd.DataFrame(data_dic)
     return report_df
-    
-    
+     
 def calculate_outlier_score_array(masks_list):
     if len(masks_list)>1:
         outlier_score = np.sum(masks_list, axis = 0)
@@ -39,6 +46,7 @@ def calculate_outlier_score_array(masks_list):
         outlier_score = masks_list[0]
     outlier_score = outlier_score.astype(int)
     return outlier_score
+
 
 #########
 
