@@ -42,8 +42,7 @@ A tool focused on outlier detection, based on various Statistical and Machine Le
 
 Data can also include indices and/or column names. If they do, then when uploaded, user should choose accordingly from the options that appear, like the following figure. For data structures like a, c or e, user should choose options b, d or f accordingly. ***Data to be analyzed*** depend on the choices from the user.
 
-![ERROR: image can't be displayed.](images\feature_label_index_options.png "Options if indices or column names are included.")
-
+![ERROR: image can't be displayed](images/feature_label_index_options.png "Options if indices or column names are included.")
 
 
 ### Built with:
