@@ -7,7 +7,7 @@ A tool focused on outlier detection, based on various Statistical and Machine Le
 
 ##### User can:
 
-- Upload data (of any dimension), or use demo-data data provided.
+- Upload data (of any dimension), or use demo-data provided.
 - Use various methods (and tune them) to identify outliers.
 - Combine different methods to find outliers.
 - Save clean data.
@@ -40,12 +40,9 @@ A tool focused on outlier detection, based on various Statistical and Machine Le
 - [ ] ***Data to be analyzed*** (read next paragraph) are **numeric**.
 
 
-
 Data can also include indices and/or column names. If they do, then when uploaded, user should choose accordingly from the options that appear, like the following figure. For data structures like a, c or e, user should choose options b, d or f accordingly. ***Data to be analyzed*** depend on the choices from the user.
 
-![Image error. The image showed self explanatory buttons with options: 'First Row has column names (attributes).' and 'First Column has indices (instance labels).' and examples of data in each case.'](\data\readme_data\feature_label_index_options.png "Options if indices or column names are included.")
-
-
+![ERROR: image can't be displayed.](images\feature_label_index_options.png "Options if indices or column names are included.")
 
 
 
@@ -67,7 +64,7 @@ Data can also include indices and/or column names. If they do, then when uploade
 
 ### Output:
     
-User choose to save three files:
+User can choose to save three files:
     1) Outlier Report with multiple sheets in .xlsx format.
     2) Clean Data in a .csv format
     3) Plot of clean Vs Raw data (as .png)
@@ -80,7 +77,7 @@ User choose to save three files:
         - Get repository:
             Option 1: Git clone
             2. Clone the repo
-                ```sh
+                ```
                 git clone https://github.com/SavvasEft/outliers_lab.git
                 ```
             Option 2: Download repository
