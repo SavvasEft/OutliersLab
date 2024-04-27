@@ -140,8 +140,13 @@ if show_euclidean_z_score_stats:
 if show_isolation_forest:
     with col1:
         st.header('Isolation Forest:')
-        contamination = st.slider('Proportion of outliers:', min_value=0.01, \
-                                    max_value = 0.5, step = 0.01, value = CONTAMINATION)
+        isol_contamination_options = ['auto', 'manual']
+        isol_contamination_option = st.radio('Define isolation forest contamination factor', isol_contamination_options, )
+        if isol_contamination_option == 'auto':
+            contamination = 'auto'
+        else:    
+            contamination = st.slider('Proportion of outliers:', min_value=0.01, \
+                                        max_value = 0.5, step = 0.01, value = CONTAMINATION)
         method_name = 'isolation forest'
         isol_forest_obj = MethodsFactory.apply_method(method_name=method_name, contamination=contamination)
         isol_forest_mask = isol_forest_obj.get_outlier_mask(data=np_data)
@@ -168,6 +173,14 @@ if show_isolation_forest:
 if show_lof:
     with col1:
         st.header('Local Outlier Factor:')
+        lof_contamination_options = ['auto', 'manual']
+        lof_contamination_option = st.radio('Define local outlier factor contamination factor', lof_contamination_options, )
+        if lof_contamination_option == 'auto':
+            contamination = 'auto'
+        else:    
+            contamination = st.slider('Proportion of outliers:', min_value=0.01, \
+                                        max_value = 0.5, step = 0.01, value = CONTAMINATION)
+        
         contamination_lof = st.slider('Proportion of outliers: ', min_value=0.01, \
                                     max_value = 0.5, step = 0.01, value = CONTAMINATION)       
         n_neighbors = st.slider('Min number of neighbors for data points: ', min_value=1, \
