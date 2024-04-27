@@ -176,13 +176,12 @@ if show_lof:
         lof_contamination_options = ['auto', 'manual']
         lof_contamination_option = st.radio('Define local outlier factor contamination factor', lof_contamination_options, )
         if lof_contamination_option == 'auto':
-            contamination = 'auto'
+            contamination_lof = 'auto'
         else:    
-            contamination = st.slider('Proportion of outliers:', min_value=0.01, \
+            contamination_lof = st.slider('Proportion of outliers:', min_value=0.01, \
                                         max_value = 0.5, step = 0.01, value = CONTAMINATION)
         
-        contamination_lof = st.slider('Proportion of outliers: ', min_value=0.01, \
-                                    max_value = 0.5, step = 0.01, value = CONTAMINATION)       
+ 
         n_neighbors = st.slider('Min number of neighbors for data points: ', min_value=1, \
                                     max_value = 500, step = 1, value = N_NEIGHBORS)
         method_name = 'local outlier factor'
