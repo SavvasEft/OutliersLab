@@ -15,7 +15,7 @@ parent_directory = os.path.dirname(os.path.dirname(__file__))
 sys.path.insert(0, parent_directory) # defined root folder 1 step up
 
 from src.outlier_methods.methods_factory import MethodsFactory
-from src.utils.ReduceDimensions import reduce_to_2d_PCA                                                  
+from src.utils.reduce_dimensions import reduce_to_2d_PCA                                                  
 from src.utils.toolbox import get_before_vs_after_plot
 from src.utils.ReportGenerator import export_dfs_to_excel_sheets, \
                                       export_df_to_csv_file, \

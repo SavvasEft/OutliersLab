@@ -24,7 +24,7 @@ from src.data_processing.DataGenerator import get_1d_distr_with_outliers, \
 from src.utils.toolbox import get_initial_1d_graphs, \
                               get_joint_plot_for_2d_data
 
-from src.utils.ReduceDimensions import reduce_to_2d_PCA
+from src.utils.reduce_dimensions import reduce_to_2d_PCA
 
 
 np_data = None
