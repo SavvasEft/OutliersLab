@@ -26,9 +26,9 @@ from src.utils.report_generator import export_dfs_to_excel_sheets, \
                                       
 from src.utils.config import CONTAMINATION, \
                              N_NEIGHBORS, \
-                             Z_THRESHOLD, \
-                             RUN_ONLINE
-                             
+                             RUN_ONLINE, \
+                             Z_THRESHOLD
+
 from src.utils.config import FNAMES
 
 st.set_page_config(layout="wide")
