@@ -12,6 +12,7 @@ ipython==8.18.1
 jedi==0.19.1
 jupyter-client==8.6.0
 jupyter-core==5.7.1
+matplotlib==3.8.3
 matplotlib-inline==0.1.6
 nest-asyncio==1.6.0
 numpy==1.26.4
