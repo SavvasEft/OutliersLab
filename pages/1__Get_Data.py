@@ -10,9 +10,6 @@ import os
 import sys
 
 parent_directory = os.path.dirname(os.path.dirname(__file__))
-
-st.write(parent_directory)
-
 sys.path.insert(0, parent_directory) # defined root folder 1 step up
 
 from src.data_processing.DataReader import DataReader

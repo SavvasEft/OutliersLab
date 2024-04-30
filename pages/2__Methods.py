@@ -17,14 +17,17 @@ sys.path.insert(0, parent_directory) # defined root folder 1 step up
 from src.outlier_methods.methods_factory import MethodsFactory
 from src.utils.reduce_dimensions import reduce_to_2d_PCA                                                  
 from src.utils.toolbox import get_before_vs_after_plot
-from src.utils.ReportGenerator import export_dfs_to_excel_sheets, \
+from src.utils.report_generator import export_dfs_to_excel_sheets, \
                                       export_df_to_csv_file, \
                                       export_plt_fig, \
                                       prepare_mask_report_df, \
-                                      get_quantitative_data_from_mask_report
+                                      get_quantitative_data_from_mask_report, \
+                                      prepare_streamlit_plot_download_button
+                                      
 from src.utils.config import CONTAMINATION, \
                              N_NEIGHBORS, \
-                             Z_THRESHOLD
+                             Z_THRESHOLD, \
+                             RUN_ONLINE
                              
 from src.utils.config import FNAMES
 
@@ -64,7 +67,6 @@ with col2:
 if show_z_stats:
     with col1: 
         st.header('z-statistics:')
-        
         if data_dimensions == 1:
             median_instead_of_mean = st.toggle('Choose median for z-stats', value=True)
             z_threshold_ax0 = st.slider('Choose z-threshold for z-scores:', min_value=1., \
@@ -82,9 +84,15 @@ if show_z_stats:
             methods_applied_names.append(method_name)
             generate_final_report = True
             st.write('*Method assumes gaussian-like distribution of data')
-            save_zscore_plot = st.toggle(f'Save plot as {FNAMES.ZSCORE_PLOT_PNG_NAME}.png', value=False)
-            if save_zscore_plot:
-                export_plt_fig(z_score_plot, fname=FNAMES.ZSCORE_PLOT_PNG_NAME)
+            fname = f'{FNAMES.ZSCORE_PLOT_PNG_NAME}'
+
+            if RUN_ONLINE:
+                prepare_streamlit_plot_download_button(fig = z_score_plot, fname = f'{fname}.png', label = f'Save as {fname}.png' )
+
+            else:
+                save_zscore_plot = st.toggle(f'Save plot as {fname}.png', value=False)
+                if save_zscore_plot:
+                    export_plt_fig(z_score_plot, fname=fname)
             print ('--Calculated outliers using z-statistics.')
 
         elif data_dimensions != 1:       
@@ -106,9 +114,14 @@ if show_iqr_stats:
             generate_final_report = True
             print ('--Calculated outliers using IQR.')
             st.write('*Method assumes gaussian-like distribution of data')
-            save_iqr_plot = st.toggle(f'Save plot as {FNAMES.IQR_PLOT_PNG_NAME}.png', value=False)
-            if save_iqr_plot:
-                export_plt_fig(iqr_plot, fname=FNAMES.IQR_PLOT_PNG_NAME)
+            fname = f'{FNAMES.IQR_PLOT_PNG_NAME}'
+            if RUN_ONLINE:
+                    prepare_streamlit_plot_download_button(fig = iqr_plot, fname = f'{fname}.png', label = f'Save as {fname}.png' )
+
+            else: 
+                save_iqr_plot = st.toggle(f'Save plot as {fname}.png', value=False)
+                if save_iqr_plot:
+                    export_plt_fig(iqr_plot, fname=fname)
 
 
         else:
@@ -131,10 +144,14 @@ if show_euclidean_z_score_stats:
         generate_final_report = True
         print ('--Calculated outliers using euclidean z-statistics.')
         st.write('*Method assumes gaussian-like distribution of euclidean distances between data and their mean')
-        save_eucl_plot = st.toggle(f'Save plot as {FNAMES.EUCL_PLOT_PNG_NAME}.png', value=False)
-        if save_eucl_plot:
-            export_plt_fig(eucl_plot, fname=FNAMES.EUCL_PLOT_PNG_NAME)
-
+        
+        fname = f'{FNAMES.EUCL_PLOT_PNG_NAME}'        
+        if RUN_ONLINE:
+            prepare_streamlit_plot_download_button(fig = eucl_plot, fname = f'{fname}.png', label = f'Save as {fname}.png' )
+        else:
+            save_eucl_plot = st.toggle(f'Save plot as {fname}.png', value=False)
+            if save_eucl_plot:
+                export_plt_fig(eucl_plot, fname=fname)
         st.write('---')
 
 if show_isolation_forest:
@@ -162,9 +179,15 @@ if show_isolation_forest:
         outlier_masks_applied.append(isol_forest_mask)
         methods_applied_names.append(method_name)
         generate_final_report = True
-        save_isol_forest_plot = st.toggle(f'Save plot as {FNAMES.ISOL_FOREST_PLOT_PNG_NAME}.png', value=False)
-        if save_isol_forest_plot:
-            export_plt_fig(isol_forest_plot, fname=FNAMES.ISOL_FOREST_PLOT_PNG_NAME)
+        
+        fname = f'{FNAMES.ISOL_FOREST_PLOT_PNG_NAME}'        
+        if RUN_ONLINE:
+            prepare_streamlit_plot_download_button(fig = isol_forest_plot, fname = f'{fname}.png', label = f'Save as {fname}.png' )
+        else:
+        
+            save_isol_forest_plot = st.toggle(f'Save plot as {fname}.png', value=False)
+            if save_isol_forest_plot:
+                export_plt_fig(isol_forest_plot, fname=fname)
         st.write('---')
 
     print ('--Calculated outliers using Isolation forest method.')
@@ -197,9 +220,14 @@ if show_lof:
         outlier_masks_applied.append(lof_mask)
         methods_applied_names.append(method_name)
         generate_final_report = True
-        save_lof_plot = st.toggle(f'Save plot as {FNAMES.LOF_PLOT_PNG_NAME}.png', value=False)
-        if save_lof_plot:
-            export_plt_fig(lof_plot, fname=FNAMES.LOF_PLOT_PNG_NAME)
+
+        fname = f'{FNAMES.LOF_PLOT_PNG_NAME}'
+        if RUN_ONLINE:
+            prepare_streamlit_plot_download_button(fig = lof_plot, fname = f'{fname}.png', label = f'Save as {fname}.png' )
+        else:
+            save_lof_plot = st.toggle(f'Save plot as {fname}.png', value=False)
+            if save_lof_plot:
+                export_plt_fig(lof_plot, fname=fname)
 
         st.write('---')    
     print ('--Calculated outliers using Local Outlier Factor method.')
@@ -258,7 +286,6 @@ if generate_final_report:
 
         if prepare_xls_report:
             st.subheader('Sheets included in the Outlier Report xlsx File:')
-
             save_outlier_report = st.toggle('Outlier Report', value=True)
             if save_outlier_report:
                 df_list_for_output.append(outlier_report_df)
@@ -307,4 +334,3 @@ print ('--')
 print ('Methods page done!!!')
 print ('--')
 print ('---'*35)
-

@@ -4,6 +4,8 @@ import numpy as np
 import os
 import sys
 from openpyxl import Workbook
+from io import BytesIO
+import streamlit as st
 
 # import odswriter as ods
 
@@ -132,3 +134,17 @@ def export_plt_fig(fig, fname=None):
     filename_path = os.path.join(OUTPUT_FOLDER_PATH, f"{fname}.png")
     fig.savefig(filename_path)
     return None
+
+def prepare_streamlit_plot_download_button(fig, fname, label):
+    # Save the plot to a BytesIO object
+    buffer = BytesIO()
+    fig.savefig(buffer, format='png')
+    buffer.seek(0)
+    
+    # Create a link for downloading
+    return st.download_button(
+        label=label,
+        data=buffer,
+        file_name=fname,
+        mime="image/png"
+    )

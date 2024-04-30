@@ -19,6 +19,7 @@ N_NEIGHBORS = 24
 
 Z_THRESHOLD = 2.5
 
+RUN_ONLINE = True
 
 # Axes name default values for figs:
 #For 1d plots

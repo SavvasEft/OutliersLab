@@ -23,9 +23,6 @@ st.text("")
 st.text("")
 st.text("")
 
-import os
-parent_directory = os.path.dirname(os.path.dirname(__file__))
-st.write(parent_directory)
 
 st.subheader('Checklist for uploaded data:')
  
