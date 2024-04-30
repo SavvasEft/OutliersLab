@@ -1,3 +1,8 @@
+print ('---'*35)
+print ('--')
+print ('Dashboard Homepage starting...')
+print ('--')
+
 import streamlit as st
 
 st.header('Welcome to Outliers Lab!')
@@ -18,7 +23,8 @@ st.text("")
 st.text("")
 st.text("")
 
-
+parent_directory = os.path.dirname(os.path.dirname(__file__))
+st.write(parent_directory)
 
 st.subheader('Checklist for uploaded data:')
  
@@ -70,3 +76,8 @@ st.markdown("""
         - Save outlier labels for further processing in yout workflow.
 """, unsafe_allow_html=True)
 
+
+print ('--')
+print ('Dashboard homepage done!!!')
+print ('--')
+print ('---'*35)
