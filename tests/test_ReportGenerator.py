@@ -12,7 +12,7 @@ parent_directory = os.path.dirname(current_directory)
 
 sys.path.insert(0, parent_directory) # defined root folder 1 step up
 
-from src.utils.ReportGenerator import export_dfs_to_excel_sheets, \
+from src.utils.report_generator import export_dfs_to_excel_sheets, \
                                       prepare_mask_report_df, \
                                       calculate_outlier_score_array
 
