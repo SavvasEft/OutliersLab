@@ -1,21 +1,25 @@
 # Outliers Lab
 
+###### Click **[here](https://outlierslab.streamlit.app)** to run the tool from your browser.
+
+![ERROR: image can't be displayed](images/tool_screenshot.png "A preview of outliers lab.")
+
 ### Short Description:
 
 A tool focused on outlier detection, based on various Statistical and Machine Learning methods. 
-
 
 ##### User can:
 
 - Upload data (of any dimension), or use demo-data provided.
 - Use various methods (and tune them) to identify outliers.
-- Combine different methods to find outliers.
-- Save clean data.
-- Prepare outlier report.
-- Visualize data & outliers.
+- Interact with each method parameters and identify best parameters based on visualizations.
+- Combine different methods to identify outliers.
+- Save various files:
+    - the clean data 
+    - visualizations for various methods used
+    - outlier report.
 
-*Note: For data with dimensions more than 2d, visualizations are shown on 2d based on dimensionality reduction methods. This is representative of the data,but some information is unavoidably lost.* 
-
+*Note: For data with dimensions more than 2d, visualizations are shown on 2d based on dimensionality reduction methods. This is representative of the data, but some information is unavoidably lost.* 
 
 ### Methods Available:
 
@@ -23,8 +27,10 @@ A tool focused on outlier detection, based on various Statistical and Machine Le
     - z-score (currently available for 1d-data).
     - modified z-score (currently available for 1d-data).
     - Interquartile Range method (currently available for 1d-data).
+    - Euclidean distance z-score method (from mean)
 
 - **ML methods**:
+    (Could also be named advanced statistical methods...)
     - Isolation forest (any-dimension data).
     - Local Outlier Factor (any-dimension data).
 
@@ -55,40 +61,55 @@ Data can also include indices and/or column names. If they do, then when uploade
 [![Git][Git.js]][Git-url]
 
 
-
-### Analyzing 
-
-
-
-
 ### Output:
     
-User can choose to save three files:
+You can save the following files:
     1) Outlier Report with multiple sheets in .xlsx format.
     2) Clean Data in a .csv format
+    3) Predicted outliers from chosen methods (True->Outlier) in a .csv format.
+    4) Plots for each method with identified outliers marked.
     3) Plot of clean Vs Raw data (as .png)
 
 
-### Installation
+### Install locally
 
-    To download and use, follow these steps:
+Follow these steps from a command line:
 
-        - Get repository:
-            Option 1: Git clone
-            2. Clone the repo
-                ```
-                git clone https://github.com/SavvasEft/outliers_lab.git
-                ```
-            Option 2: Download repository
+1. Navigate to the folder that the tool will be installed.
 
-        - Install Locally:     
-            pip install requirements
+2. Get repository from github:
+    ```
+    git clone https://github.com/SavvasEft/outliers_lab.git
+    ```
 
-        - Run the tool:
-            To run outliers lab:
-                1) Go to downloaded folder
-                2) Type: streamlit run dashboard.py 
-        
+3. Create a virtual environment to isolate packages that will be installed:
+    ```
+    python -m venv venv
+    ```
+
+4. Activate virtual environment:
+    In same folder you downloaded file:
+    ```
+    venv/Scripts/activate
+    ```
+
+5. Install outliers lab:
+    ```
+    pip install -r requirements.txt
+    ```
+
+6. Run tool locally: 
+    ```
+    streamlit run dashboard.py
+    ```
+
+7. Deactivate virtual environment:
+    ```
+    deactivate
+    ```
+
+
+
 [![License: MIT](https://assets-global.website-files.com/5e0f1144930a8bc8aace526c/65dd9eb5aaca434fac4f1c34_License-MIT-blue.svg)](/LICENSE)
 
 

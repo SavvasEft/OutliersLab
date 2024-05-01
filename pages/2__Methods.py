@@ -57,7 +57,7 @@ show_euclidean_z_score_stats = st.sidebar.checkbox('Euclidean z-score method', v
 show_isolation_forest = st.sidebar.checkbox('Isolation Forest', value=True)
 show_lof = st.sidebar.checkbox('Local Outlier Factor', value=True)
 
-col1, col2 =st.columns([0.6, 0.4])  
+col1, col2 =st.columns([0.55, 0.45])  
 with col1:
     st.header('Outlier Detection')
     st.write('Tune chosen algorithms')
