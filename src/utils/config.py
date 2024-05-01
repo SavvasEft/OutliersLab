@@ -16,9 +16,9 @@ CONTAMINATION = 0.1
 
 # Used in LOF method
 N_NEIGHBORS = 24
-
 Z_THRESHOLD = 2.5
 
+# option to prepare download button instead of saving in output folder
 RUN_ONLINE = True
 
 # Axes name default values for figs:
@@ -31,9 +31,9 @@ class FNAMES:
     SUMMARY_OUTPUT_XLSX_FNAME = 'OutlierReport'
     CLEAN_DATA_CSV_FNAME = 'CleanData'
     BEFORE_VS_AFTER_PLOT_NAME = 'CleanVsRaw_data_plot'
-    GLOBAL_OUTLIER_MASK_CSV_FNAME = 'OutlierLabels'
-    ZSCORE_PLOT_PNG_NAME = 'ZScore_plot'
-    IQR_PLOT_PNG_NAME = 'IQR_plot'
-    EUCL_PLOT_PNG_NAME = 'Euclidean_Zscore_plot'
-    ISOL_FOREST_PLOT_PNG_NAME = 'Isolation_Forest_plot'
-    LOF_PLOT_PNG_NAME = 'LocalOutlierFactor_plot'
+    GLOBAL_OUTLIER_MASK_CSV_FNAME = 'GlobalOutlierMask'
+    ZSCORE_PLOT_PNG_NAME = 'ZScore_OutlierPlot'
+    IQR_PLOT_PNG_NAME = 'IQR_OutlierPlot'
+    EUCL_PLOT_PNG_NAME = 'EuclideanZscore_OutlierPlot'
+    ISOL_FOREST_PLOT_PNG_NAME = 'IsolationForest_OutlierPlot'
+    LOF_PLOT_PNG_NAME = 'LOF_OutlierPlot'

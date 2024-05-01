@@ -109,7 +109,7 @@ def export_dfs_to_excel_sheets(df_list,sheet_name_list, fname, \
     #     sloths.writerow(["Pygmy Three-Toed Sloth", "Maned Sloth", "Pale-Throated Sloth", "Brown-Throated Sloth",
     #     "Linneaeus's Two-Twoed Sloth", "Hoffman's Two-Toed Sloth"])
 
-    return None
+    # return None
 
 
 def prepare_outlier_report_df(outlier_report_array, methods_list):
@@ -147,4 +147,54 @@ def prepare_streamlit_plot_download_button(fig, fname, label):
         data=buffer,
         file_name=fname,
         mime="image/png"
+    )
+    
+def prepare_streamlit_csv_download_button(df, fname, label):
+    buffer = BytesIO()
+    df.to_csv(buffer, index=False, header=False)
+    buffer.seek(0)
+    fname_with_extension=f'{fname}.csv'
+    return st.download_button(
+        label=label,
+        data=buffer,
+        file_name=fname_with_extension,
+        mime='text/csv'
+    )
+    
+def prepare_streamlit_excel_download_button_from_multiple_dfs(dfs, fname, label):
+    buffer = BytesIO()
+    with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
+        for sheet_name, df in dfs.items():
+            df.to_excel(writer, sheet_name=sheet_name, index=False)
+    buffer.seek(0)
+    return st.download_button(
+        label=label,
+        data=buffer,
+        file_name=fname,
+        mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+
+
+def prepare_streamlit_xlsx_download_button_for_dfs(df_list, sheet_name_list, fname='output_file_multiple_sheets', \
+                                                              header_bool_list=None, label=None):
+
+
+    if header_bool_list is None:
+        header_bool_list = [True] * len(df_list)
+
+    buffer = BytesIO()
+
+    with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
+        for df_file, sheet_name, header in zip(df_list, sheet_name_list, header_bool_list):
+            df_file.to_excel(writer, sheet_name=sheet_name, index=False, header=header)
+    
+    # Move the buffer's cursor to the beginning
+    buffer.seek(0)
+
+    # Create and return a Streamlit download button for the Excel file
+    return st.download_button(
+        label=label,
+        data=buffer,
+        file_name=f"{fname}.xlsx",
+        mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )

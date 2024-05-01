@@ -22,12 +22,18 @@ from src.utils.report_generator import export_dfs_to_excel_sheets, \
                                       export_plt_fig, \
                                       prepare_mask_report_df, \
                                       get_quantitative_data_from_mask_report, \
-                                      prepare_streamlit_plot_download_button
+                                      prepare_streamlit_plot_download_button, \
+                                      prepare_streamlit_csv_download_button, \
+                                      prepare_streamlit_xlsx_download_button_for_dfs
                                       
 from src.utils.config import CONTAMINATION, \
                              N_NEIGHBORS, \
                              RUN_ONLINE, \
                              Z_THRESHOLD
+
+
+#TODO: enable run offline saving options
+RUN_ONLINE = True
 
 from src.utils.config import FNAMES
 
@@ -61,8 +67,7 @@ with col1:
 with col2:
     st.header('Findings')
     st.write('Outliers found when chosen methods are combined')
-    details_on = st.toggle('Show details')
-    st.write('---')
+
 
 if show_z_stats:
     with col1: 
@@ -84,7 +89,7 @@ if show_z_stats:
             methods_applied_names.append(method_name)
             generate_final_report = True
             st.write('*Method assumes gaussian-like distribution of data')
-            fname = f'{FNAMES.ZSCORE_PLOT_PNG_NAME}'
+            fname = FNAMES.ZSCORE_PLOT_PNG_NAME
 
             if RUN_ONLINE:
                 prepare_streamlit_plot_download_button(fig = z_score_plot, fname = f'{fname}.png', label = f'Save as {fname}.png' )
@@ -114,7 +119,7 @@ if show_iqr_stats:
             generate_final_report = True
             print ('--Calculated outliers using IQR.')
             st.write('*Method assumes gaussian-like distribution of data')
-            fname = f'{FNAMES.IQR_PLOT_PNG_NAME}'
+            fname = FNAMES.IQR_PLOT_PNG_NAME
             if RUN_ONLINE:
                     prepare_streamlit_plot_download_button(fig = iqr_plot, fname = f'{fname}.png', label = f'Save as {fname}.png' )
 
@@ -145,7 +150,7 @@ if show_euclidean_z_score_stats:
         print ('--Calculated outliers using euclidean z-statistics.')
         st.write('*Method assumes gaussian-like distribution of euclidean distances between data and their mean')
         
-        fname = f'{FNAMES.EUCL_PLOT_PNG_NAME}'        
+        fname = FNAMES.EUCL_PLOT_PNG_NAME  
         if RUN_ONLINE:
             prepare_streamlit_plot_download_button(fig = eucl_plot, fname = f'{fname}.png', label = f'Save as {fname}.png' )
         else:
@@ -180,7 +185,7 @@ if show_isolation_forest:
         methods_applied_names.append(method_name)
         generate_final_report = True
         
-        fname = f'{FNAMES.ISOL_FOREST_PLOT_PNG_NAME}'        
+        fname = FNAMES.ISOL_FOREST_PLOT_PNG_NAME       
         if RUN_ONLINE:
             prepare_streamlit_plot_download_button(fig = isol_forest_plot, fname = f'{fname}.png', label = f'Save as {fname}.png' )
         else:
@@ -201,7 +206,7 @@ if show_lof:
         if lof_contamination_option == 'auto':
             contamination_lof = 'auto'
         else:    
-            contamination_lof = st.slider('Proportion of outliers:', min_value=0.01, \
+            contamination_lof = st.slider('Proportion of outliers for LOF:', min_value=0.01, \
                                         max_value = 0.5, step = 0.01, value = CONTAMINATION)
         
  
@@ -221,7 +226,7 @@ if show_lof:
         methods_applied_names.append(method_name)
         generate_final_report = True
 
-        fname = f'{FNAMES.LOF_PLOT_PNG_NAME}'
+        fname = FNAMES.LOF_PLOT_PNG_NAME
         if RUN_ONLINE:
             prepare_streamlit_plot_download_button(fig = lof_plot, fname = f'{fname}.png', label = f'Save as {fname}.png' )
         else:
@@ -235,6 +240,8 @@ if show_lof:
 
 if generate_final_report:
     with col2:
+        details_on = st.toggle('Show details')
+        st.write('---')
         combined_outlier_mask = MethodsFactory.combine_outlier_masks(masks_list = outlier_masks_applied)
         clean_data = np_data[np.invert(combined_outlier_mask)]
         clean_data_df = pd.DataFrame(clean_data)
@@ -254,7 +261,7 @@ if generate_final_report:
 
 
         st.write('---')
-        st.header('Outlier Report') 
+        st.header('Outlier Overview') 
         st.write('Report on each point with outlier scores, methods that identified point as outlier, and the final decision if a point is an outlier or not based on chosen methods.')
         st.write(outlier_report_df)
         st.write('**Point index**: Number of row in raw data.')
@@ -274,61 +281,74 @@ if generate_final_report:
 
         if details_on:                                
             st.pyplot(clean_vs_raw_data_plot)
+            fname = FNAMES.BEFORE_VS_AFTER_PLOT_NAME
+            prepare_streamlit_plot_download_button(fig = clean_vs_raw_data_plot, fname = f'{fname}.png', label = f'Save as {fname}.png' )
+
             if data_dimensions>2:
                 st.write('*Reduced dimensions to 2d (PCA) for visualization.')
             st.write('---')
 
-        st.header('Saving options')
-        prepare_xls_report = st.toggle(f'Save Outlier Report in {FNAMES.SUMMARY_OUTPUT_XLSX_FNAME}.xlsx', value=True)
-        save_clean_data_as_csv = st.toggle(f'Save Clean Data as {FNAMES.CLEAN_DATA_CSV_FNAME}.csv', value=True)
-        save_global_outlier_mask_as_csv = st.toggle(f'Save Global Outlier Mask as {FNAMES.GLOBAL_OUTLIER_MASK_CSV_FNAME}.csv', value=True)
-        save_clean_vs_raw_data_plot = st.toggle(f'Save clean Vs raw data plot as  {FNAMES.BEFORE_VS_AFTER_PLOT_NAME}.png', value=True)
+        if RUN_ONLINE:
+            st.header('Saving options')
+            #files_to_save: 
+            #clean data:
+            fname=FNAMES.CLEAN_DATA_CSV_FNAME
+            prepare_streamlit_csv_download_button(df=clean_data_df, fname=fname, label=f'Save {fname}.csv')
+            fname=FNAMES.GLOBAL_OUTLIER_MASK_CSV_FNAME
+            prepare_streamlit_csv_download_button(df=combined_outlier_mask_df.astype(int), fname=fname, label=f'Save {fname}.csv')
 
-        if prepare_xls_report:
-            st.subheader('Sheets included in the Outlier Report xlsx File:')
-            save_outlier_report = st.toggle('Outlier Report', value=True)
-            if save_outlier_report:
+            prepare_xls_report = True
+            if prepare_xls_report:
                 df_list_for_output.append(outlier_report_df)
                 sheets_name_list_for_output.append('Outlier Report')
                 header_bool_list.append(True)
                 
-            save_clean_data_as_sheet = st.toggle(f'Clean data', value=True)
-            if save_clean_data_as_sheet:
                 df_list_for_output.append(clean_data_df)
                 sheets_name_list_for_output.append('Clean Data')
                 header_bool_list.append(False)
 
-            save_outliers_mask_as_sheet = st.toggle(f'Global Outliers Mask', value=True)
-            if save_outliers_mask_as_sheet:
                 df_list_for_output.append(combined_outlier_mask_df)
                 sheets_name_list_for_output.append('Global Outliers Mask')
                 header_bool_list.append(False)
 
-            save_outliers_as_sheet = st.toggle('Outliers', value=True)
-            if save_outliers_as_sheet:
                 df_list_for_output.append(outliers_found_df)
                 sheets_name_list_for_output.append('Outliers')
                 header_bool_list.append(False)
+
+                fname=FNAMES.SUMMARY_OUTPUT_XLSX_FNAME
+                prepare_streamlit_xlsx_download_button_for_dfs(df_list=df_list_for_output, \
+                                        sheet_name_list=sheets_name_list_for_output, \
+                                        fname=fname, \
+                                        header_bool_list=header_bool_list, \
+                                        label=f'Save {fname}.xlsx')
+
+        else:
+            st.header('Saving options')
+            prepare_xls_report = st.toggle(f'Save Outlier Report in {FNAMES.SUMMARY_OUTPUT_XLSX_FNAME}.xlsx', value=True)
+            save_clean_data_as_csv = st.toggle(f'Save Clean Data as {FNAMES.CLEAN_DATA_CSV_FNAME}.csv', value=True)
+            save_global_outlier_mask_as_csv = st.toggle(f'Save Global Outlier Mask as {FNAMES.GLOBAL_OUTLIER_MASK_CSV_FNAME}.csv', value=True)
+            save_clean_vs_raw_data_plot = st.toggle(f'Save clean Vs raw data plot as  {FNAMES.BEFORE_VS_AFTER_PLOT_NAME}.png', value=True)
+
+            if len(df_list_for_output)>0:
+                export_dfs_to_excel_sheets(df_list=df_list_for_output, \
+                                        sheet_name_list=sheets_name_list_for_output, \
+                                        fname=FNAMES.SUMMARY_OUTPUT_XLSX_FNAME, \
+                                        header_bool_list=header_bool_list)
+
+            if save_clean_data_as_csv:
+                export_df_to_csv_file(df = clean_data_df, fname = FNAMES.CLEAN_DATA_CSV_FNAME)
             
-            st.write('---')
+            if details_on:
+                if save_clean_vs_raw_data_plot:
+                    export_plt_fig(clean_vs_raw_data_plot, fname=FNAMES.BEFORE_VS_AFTER_PLOT_NAME)
+
+
+            
+        st.write('---')
 
 #Export files:
-    if len(df_list_for_output)>0:
-        export_dfs_to_excel_sheets(df_list=df_list_for_output, \
-                                sheet_name_list=sheets_name_list_for_output, \
-                                fname=FNAMES.SUMMARY_OUTPUT_XLSX_FNAME, \
-                                header_bool_list=header_bool_list)
-
-    if save_clean_data_as_csv:
-        export_df_to_csv_file(df = clean_data_df, fname = FNAMES.CLEAN_DATA_CSV_FNAME)
-    
-    if details_on:
-        if save_clean_vs_raw_data_plot:
-            export_plt_fig(clean_vs_raw_data_plot, fname=FNAMES.BEFORE_VS_AFTER_PLOT_NAME)
     
 st.write('---')        
-
-    
 
 print ('--')
 print ('Methods page done!!!')
