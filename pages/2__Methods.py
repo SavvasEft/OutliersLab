@@ -28,9 +28,8 @@ from src.utils.report_generator import export_dfs_to_excel_sheets, \
                                       
 from src.utils.config import CONTAMINATION, \
                              N_NEIGHBORS, \
-                             RUN_ONLINE, \
                              Z_THRESHOLD
-
+                             #RUN_ONLINE
 
 #TODO: enable run offline saving options
 RUN_ONLINE = True
