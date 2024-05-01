@@ -37,3 +37,4 @@ class FNAMES:
     EUCL_PLOT_PNG_NAME = 'EuclideanZscore_OutlierPlot'
     ISOL_FOREST_PLOT_PNG_NAME = 'IsolationForest_OutlierPlot'
     LOF_PLOT_PNG_NAME = 'LOF_OutlierPlot'
+    
